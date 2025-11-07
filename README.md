@@ -1,17 +1,20 @@
 # CubeIt
 
-A quantum software package for two-qubit systems with a universal gate set.
-
-CubeIt provides a simple and intuitive interface for working with two-qubit quantum systems, including a universal gate set that can approximate any quantum operation to arbitrary precision.
+CubeIt is a lightweight quantum playground for **n-qubit** registers. It exposes
+an approachable, chainable API with a universal gate set, built-in measurement
+helpers, and utilities for visualisation and testing.
 
 ## Features
 
-- **Universal Gate Set**: {H, S, T, CNOT} - can approximate any unitary operation
-- **Two-Qubit System**: Full support for two-qubit quantum states and operations
-- **Additional Gates**: Pauli gates (X, Y, Z), rotations, and two-qubit gates
-- **Measurement Operations**: Full and partial qubit measurements
-- **Visualization Tools**: State visualization and measurement statistics
-- **Bell States**: Easy creation of maximally entangled states
+- **N-Qubit Registers:** Create registers of any size with `quantumregister(n)`.
+- **Universal Gate Set:** Lower-case factories (`h()`, `s()`, `t()`, `cnot()`, …)
+  and ergonomic instance helpers (`qr.h(i)`, `qr.cnot(control, target)`).
+- **State Introspection:** `get_state()` pretty prints amplitudes, `measure()`
+  collapses qubits and returns classical outcomes.
+- **Utility Modules:** Measurement statistics, Bell-state builders, fidelity
+  checks, and more under `cubeit.visualization`.
+- **Pytest-Friendly:** Extensive suite (see `example.py`) covering helpers,
+  measurement logic, GHZ states, and unitarity tests.
 
 ## Installation
 
@@ -27,231 +30,132 @@ pip install -e .
 
 ## Quick Start
 
-### Basic Usage
-
 ```python
-from cubeit import TwoQubitSystem, H, CNOT
+from cubeit import quantumregister, get_state, measure
 
-# Create a two-qubit system (starts in |00⟩ state)
-system = TwoQubitSystem()
+# 1) Create a 4-qubit register (|0000⟩)
+qr = quantumregister(4)
 
-# Apply Hadamard gate to qubit 0
-system.apply_single_qubit_gate(H(), 0)
+# 2) Build a circuit with fluent helpers
+qr.h(0)          # Hadamard on qubit 0
+qr.cnot(0, 1)    # Entangle qubit 0 and 1
+qr.rx(2, 0.5)    # Rotate qubit 2 around X by 0.5 radians
+qr.cz(1, 3)      # Controlled-Z between qubit 1 and 3
 
-# Apply CNOT gate (control=0, target=1)
-system.apply_gate(CNOT())
+# 3) Inspect the statevector (pretty printed)
+get_state(qr)
 
-# View the state
-print(system)
-# Output: TwoQubitSystem:
-#   0.707|00⟩ + 0.707|11⟩
-
-# Measure the qubits
-result = system.measure()
-print(f"Measurement result: {result}")
+# 4) Measure – collapses the state and returns a bitstring
+result = measure(qr)
+print("Measurement:", result)
 ```
 
-### Universal Gate Set
+### Gate Helpers at a Glance
 
-The universal gate set consists of:
+| Helper | Description |
+| ------ | ----------- |
+| `qr.h(i)` | Hadamard on qubit *i* |
+| `qr.x(i)`, `qr.y(i)`, `qr.z(i)` | Pauli gates |
+| `qr.s(i)`, `qr.t(i)` | Phase / π/8 gates |
+| `qr.rx(i, θ)`, `qr.ry(i, θ)`, `qr.rz(i, θ)` | Rotations |
+| `qr.cnot(control, target)` | Controlled-NOT |
+| `qr.cz(control, target)` | Controlled-Z |
+| `qr.cphase(control, target, φ)` | Controlled-phase |
+| `qr.swap(a, b)` | Swap two qubits |
 
-- **H (Hadamard)**: Creates superposition
-- **S (Phase)**: Applies π/2 phase
-- **T (π/8 gate)**: Applies π/4 phase
-- **CNOT**: Controlled-NOT gate (two-qubit)
+Prefer something functional? Import the factories directly:
 
 ```python
-from cubeit import TwoQubitSystem, H, S, T, CNOT
+from cubeit import h, cnot, quantumregister
 
-system = TwoQubitSystem()
-
-# Apply universal gates
-system.apply_single_qubit_gate(H(), 0)  # Hadamard on qubit 0
-system.apply_single_qubit_gate(S(), 0)   # Phase gate on qubit 0
-system.apply_single_qubit_gate(T(), 1)   # T gate on qubit 1
-system.apply_gate(CNOT())                # CNOT gate
-
-print(system)
+qr = quantumregister(2)
+qr.apply_single_qubit_gate(h(), 0)
+qr.apply_two_qubit_gate(cnot(), 0, 1)
 ```
 
-### Creating Bell States
+### Measurement & Probabilities
+
+```python
+from cubeit import quantumregister, get_state, measure
+from cubeit.visualization import print_probabilities
+
+qr = quantumregister(2).h(0).cnot(0, 1)
+
+print_probabilities(qr)
+# Measurement Probabilities:
+#   |00⟩: 0.5000 (50.00%)
+#   |11⟩: 0.5000 (50.00%)
+
+measure(qr)  # collapses the register and prints the classical outcome
+```
+
+### Bell States & Visualisation
 
 ```python
 from cubeit.visualization import create_bell_state, print_state, print_measurement_stats
 
-# Create a Bell state |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
 bell = create_bell_state("phi_plus")
-
-print_state(bell)
-# Output: 0.707|00⟩ + 0.707|11⟩
-
-# Simulate measurements
-print_measurement_stats(bell, num_samples=1000)
-```
-
-### Measurement Probabilities
-
-```python
-from cubeit.visualization import print_probabilities
-
-system = TwoQubitSystem()
-system.apply_single_qubit_gate(H(), 0)
-system.apply_gate(CNOT())
-
-print_probabilities(system)
-# Output:
-# Measurement Probabilities:
-#   |00⟩: 0.5000 (50.00%)
-#   |01⟩: 0.0000 (0.00%)
-#   |10⟩: 0.0000 (0.00%)
-#   |11⟩: 0.5000 (50.00%)
-```
-
-### Additional Gates
-
-```python
-from cubeit import TwoQubitSystem, X, Y, Z, RotationX, Phase
-
-system = TwoQubitSystem()
-
-# Pauli gates
-system.apply_single_qubit_gate(X(), 0)  # Bit flip
-system.apply_single_qubit_gate(Y(), 1)  # Pauli-Y
-system.apply_single_qubit_gate(Z(), 0)  # Phase flip
-
-# Parameterized gates
-system.apply_single_qubit_gate(RotationX(np.pi/4), 0)  # Rotate around X-axis
-system.apply_single_qubit_gate(Phase(np.pi/3), 1)      # Arbitrary phase
-```
-
-### Two-Qubit Gates
-
-```python
-from cubeit import TwoQubitSystem, CNOT, CNOT_10, SWAP, CZ
-
-system = TwoQubitSystem()
-
-# CNOT with control on qubit 0, target on qubit 1
-system.apply_gate(CNOT())
-
-# CNOT with control on qubit 1, target on qubit 0
-system.apply_gate(CNOT_10())
-
-# SWAP gate
-system.apply_gate(SWAP())
-
-# Controlled-Z gate
-system.apply_gate(CZ())
-```
-
-### Partial Measurement
-
-```python
-system = TwoQubitSystem()
-system.apply_single_qubit_gate(H(), 0)
-system.apply_gate(CNOT())
-
-# Measure only qubit 0 (collapses the state)
-result = system.measure_qubit(0)
-print(f"Qubit 0 measured: {result}")
-
-# Now measure qubit 1
-result = system.measure_qubit(1)
-print(f"Qubit 1 measured: {result}")
+print_state(bell)                 # 0.707|00⟩ + 0.707|11⟩
+print_measurement_stats(bell)     # Monte-Carlo sampling
 ```
 
 ## API Reference
 
-### TwoQubitSystem
+### `quantumregister`
 
-Main class for working with two-qubit quantum systems.
+Factory returning an instance of the internal `_QuantumRegister`. Methods:
 
-**Methods:**
-- `apply_gate(gate_matrix)`: Apply a 4x4 gate matrix
-- `apply_single_qubit_gate(gate_matrix, qubit)`: Apply a 2x2 gate to a specific qubit
-- `measure()`: Measure both qubits
-- `measure_qubit(qubit)`: Measure a single qubit (partial measurement)
-- `get_state()`: Get the current quantum state
-- `get_probabilities()`: Get measurement probabilities
+- `apply_gate(matrix)` / `apply_single_qubit_gate(matrix, qubit)`
+- `measure()` & `measure_qubit(qubit)`
+- `get_state()` → returns a `QuantumState`
+- `get_probabilities()` → `np.ndarray`
+- Fluent helpers: `h`, `x`, `y`, `z`, `s`, `t`, `phase`, `rx`, `ry`, `rz`,
+  `cnot`, `cz`, `cphase`, `swap`
 
-### Gates
+### Gate Factories
 
-**Universal Gate Set:**
-- `H()`: Hadamard gate
-- `S()`: Phase gate
-- `T()`: T gate (π/8 gate)
-- `CNOT()`: Controlled-NOT gate (control=0, target=1)
-- `CNOT_10()`: CNOT gate (control=1, target=0)
+Import functions directly from `cubeit` when you need raw matrices:
 
-**Pauli Gates:**
-- `X()`: Pauli-X (bit flip)
-- `Y()`: Pauli-Y
-- `Z()`: Pauli-Z (phase flip)
+```python
+from cubeit import h, x, cnot, swap
 
-**Parameterized Gates:**
-- `Phase(phi)`: Phase gate with arbitrary phase
-- `RotationX(theta)`: Rotation around X-axis
-- `RotationY(theta)`: Rotation around Y-axis
-- `RotationZ(theta)`: Rotation around Z-axis
-
-**Two-Qubit Gates:**
-- `SWAP()`: SWAP gate
-- `CZ()`: Controlled-Z gate
-- `CPHASE(phi)`: Controlled-Phase gate
+u = h()          # 2x2 Hadamard matrix
+cx = cnot()      # 4x4 CNOT (control=0, target=1)
+swap_gate = swap()
+```
 
 ## Examples
 
 ### Example 1: Creating a Bell State
 
 ```python
-from cubeit import TwoQubitSystem, H, CNOT
+from cubeit import quantumregister
 
-system = TwoQubitSystem()
-system.apply_single_qubit_gate(H(), 0)
-system.apply_gate(CNOT())
-
-print(system)
-# Output: TwoQubitSystem:
+qr = quantumregister(2)
+qr.h(0).cnot(0, 1)
+print(qr)
+# QuantumRegister(2 qubits):
 #   0.707|00⟩ + 0.707|11⟩
 ```
 
-### Example 2: Quantum Teleportation Circuit
+### Example 2: Measurement Statistics
 
 ```python
-from cubeit import TwoQubitSystem, H, CNOT, X, Z
-
-# Initialize: qubit 0 is the state to teleport, qubits 1-2 are entangled
-system = TwoQubitSystem()
-
-# Create Bell pair between qubits 1 and 2
-# (In a 2-qubit system, we'll use qubits 0 and 1)
-system.apply_single_qubit_gate(H(), 0)
-system.apply_gate(CNOT())
-
-# Apply teleportation gates
-system.apply_single_qubit_gate(H(), 0)
-# ... (simplified example)
-```
-
-### Example 3: Measurement Statistics
-
-```python
-from cubeit import TwoQubitSystem, H, CNOT
+from cubeit import quantumregister
 from cubeit.visualization import print_measurement_stats
 
-system = TwoQubitSystem()
-system.apply_single_qubit_gate(H(), 0)
-system.apply_gate(CNOT())
+qr = quantumregister(2).h(0).cnot(0, 1)
 
-# Run 1000 measurements and see statistics
-print_measurement_stats(system, num_samples=1000)
+print_measurement_stats(qr, num_samples=1000)
 ```
 
 ## Theory
 
 ### Universal Gate Set
 
-The set {H, S, T, CNOT} forms a universal gate set for quantum computation. This means that any unitary operation on any number of qubits can be approximated to arbitrary precision using only these gates.
+The set {H, S, T, CNOT} (and consequently their lowercase counterparts) forms a
+universal gate set. Any unitary operation can be approximated to arbitrary
+precision using these primitives.
 
 - **H**: Creates superposition states
 - **S**: Applies π/2 phase rotation

@@ -1,7 +1,6 @@
 # CubeIt
 
-CubeIt is a lightweight quantum playground for **n-qubit** registers. It exposes
-an approachable, chainable API with a universal gate set, built-in measurement
+CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal gate set, built-in measurement
 helpers, and utilities for visualisation and testing.
 
 ## Features

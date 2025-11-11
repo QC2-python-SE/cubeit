@@ -80,3 +80,6 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
     """
     return system1.get_state().fidelity(system2.get_state())
 
+# write function take cubeit QuantumRegister and plot the bloch sphere representation of each qubit in the register
+# write von neumann entropy function to show entanglement
+# do some tests

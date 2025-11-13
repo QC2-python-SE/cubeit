@@ -12,8 +12,48 @@ from cubeit import (
     h, s, t, x, y, z,
     cnot, cnot_10, swap, cz,
 )
-from cubeit.visualization import create_bell_state, fidelity
+from cubeit.visualization import fidelity
 
+def create_bell_state(state_type: str = "phi_plus") -> quantumregister:
+    """
+    Create a Bell state (maximally entangled state).
+    
+    Args:
+        state_type: Type of Bell state
+            - "phi_plus":  (|00⟩ + |11⟩) / √2
+            - "phi_minus": (|00⟩ - |11⟩) / √2
+            - "psi_plus":  (|01⟩ + |10⟩) / √2
+            - "psi_minus": (|01⟩ - |10⟩) / √2
+    
+    Returns:
+        TwoQubitSystem in the specified Bell state
+    """
+    system = quantumregister(2)  # Bell states are for 2 qubits
+    
+    if state_type == "phi_plus":
+        # |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
+        system.h(0)
+        system.cnot(0, 1)
+    elif state_type == "phi_minus":
+        # |Φ⁻⟩ = (|00⟩ - |11⟩) / √2
+        system.h(0)
+        system.z(0)  # Apply Z before CNOT
+        system.cnot(0, 1)
+    elif state_type == "psi_plus":
+        # |Ψ⁺⟩ = (|01⟩ + |10⟩) / √2
+        system.h(0)
+        system.x(1)  # Flip qubit 1
+        system.cnot(0, 1)
+    elif state_type == "psi_minus":
+        # |Ψ⁻⟩ = (|01⟩ - |10⟩) / √2
+        system.h(0)
+        system.x(1)  # Flip qubit 1
+        system.z(0)  # Apply Z before CNOT
+        system.cnot(0, 1)
+    else:
+        raise ValueError(f"Unknown Bell state type: {state_type}")
+    
+    return system
 
 class TestQuantumState:
     """Test cases for QuantumState class."""

@@ -67,48 +67,6 @@ def print_measurement_stats(system: QuantumRegister, num_samples: int = 1000):
         print(f"  |{state}⟩: {count:4d} ({percentage:5.2f}%)")
 
 
-def create_bell_state(state_type: str = "phi_plus") -> QuantumRegister:
-    """
-    Create a Bell state (maximally entangled state).
-    
-    Args:
-        state_type: Type of Bell state
-            - "phi_plus":  (|00⟩ + |11⟩) / √2
-            - "phi_minus": (|00⟩ - |11⟩) / √2
-            - "psi_plus":  (|01⟩ + |10⟩) / √2
-            - "psi_minus": (|01⟩ - |10⟩) / √2
-    
-    Returns:
-        TwoQubitSystem in the specified Bell state
-    """
-    system = QuantumRegister(2)  # Bell states are for 2 qubits
-    
-    if state_type == "phi_plus":
-        # |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
-        system.h(0)
-        system.cnot(0, 1)
-    elif state_type == "phi_minus":
-        # |Φ⁻⟩ = (|00⟩ - |11⟩) / √2
-        system.h(0)
-        system.z(0)  # Apply Z before CNOT
-        system.cnot(0, 1)
-    elif state_type == "psi_plus":
-        # |Ψ⁺⟩ = (|01⟩ + |10⟩) / √2
-        system.h(0)
-        system.x(1)  # Flip qubit 1
-        system.cnot(0, 1)
-    elif state_type == "psi_minus":
-        # |Ψ⁻⟩ = (|01⟩ - |10⟩) / √2
-        system.h(0)
-        system.x(1)  # Flip qubit 1
-        system.z(0)  # Apply Z before CNOT
-        system.cnot(0, 1)
-    else:
-        raise ValueError(f"Unknown Bell state type: {state_type}")
-    
-    return system
-
-
 def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
     """
     Calculate fidelity between two quantum states.
@@ -122,3 +80,6 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
     """
     return system1.get_state().fidelity(system2.get_state())
 
+# write function take cubeit QuantumRegister and plot the bloch sphere representation of each qubit in the register
+# write von neumann entropy function to show entanglement
+# do some tests

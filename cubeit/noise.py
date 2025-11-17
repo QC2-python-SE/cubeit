@@ -40,7 +40,7 @@ def dephasing_noise(rho, p):
     noisy_rho = (1 - p) * rho + p * Z @ rho @ Z
     return noisy_rho
 
-def amplitude_damping_noise(rho, gamma, qubits=1):
+def amplitude_damping_noise(rho, gamma):
     """
     Apply amplitude damping noise to a density matrix.
 
@@ -54,13 +54,7 @@ def amplitude_damping_noise(rho, gamma, qubits=1):
 
     K0 = np.array([[1, 0], [0, np.sqrt(1 - gamma)]])
     K1 = np.array([[0, np.sqrt(gamma)], [0, 0]])
-    
-    if qubits == 1:
-        noisy_rho = K0 @ rho @ K0.T + K1 @ rho @ K1.T
-    else:
-        I = np.eye(2,dtype=complex)
-        K0_2 = np.kron(K0, I)
-        K1_2 = np.kron(K1, I)
-        noisy_rho = K0_2 @ rho @ K0_2.T + K1_2 @ rho @ K1_2.T
+
+    noisy_rho = K0 @ rho @ K0.T + K1 @ rho @ K1.T
     
     return noisy_rho

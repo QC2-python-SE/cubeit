@@ -463,3 +463,15 @@ class _QuantumRegister:
     
     def __str__(self):
         return f"QuantumRegister({self.num_qubits} qubits):\n  {self.state.to_string()}"
+
+    def import_noise(self):
+        from .noise import (
+            depolarising_noise,
+            dephasing_noise,
+            amplitude_damping_noise            
+        )
+        return {
+            "Depolarising noise": depolarising_noise,
+            "Dephasing noise": dephasing_noise,
+            "Amplitude damping noise": amplitude_damping_noise
+        }    

@@ -83,3 +83,43 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
 # write function take cubeit QuantumRegister and plot the bloch sphere representation of each qubit in the register
 # write von neumann entropy function to show entanglement
 # do some tests
+
+def plot_bloch_sphere(system: QuantumRegister):
+    """
+    Plot the Bloch sphere representation of each qubit in the QuantumRegister.
+    
+    Args:
+        system: QuantumRegister containing the qubits to visualize
+    """
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+
+    num_qubits = system.num_qubits
+    fig = plt.figure(figsize=(5 * num_qubits, 5))
+    state_vectors = []
+    for i in system.state.state:
+        state_vectors.append(i)
+
+    for i in range(num_qubits):
+        ax = fig.add_subplot(1, num_qubits, i + 1, projection='3d')
+        x, y, z = state_vectors[i].real, state_vectors[i].imag, 0
+
+        # Draw Bloch sphere
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
+        xs = np.outer(np.cos(u), np.sin(v))
+        ys = np.outer(np.sin(u), np.sin(v))
+        zs = np.outer(np.ones(np.size(u)), np.cos(v))
+        ax.plot_surface(xs, ys, zs, color='c', alpha=0.1)
+
+        # Draw state vector
+        ax.quiver(0, 0, 0, x, y, z, color='r', linewidth=2)
+        ax.set_title(f'Qubit {i}')
+        ax.set_xlim([-1, 1])
+        ax.set_ylim([-1, 1])
+        ax.set_zlim([-1, 1])
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+    plt.show()

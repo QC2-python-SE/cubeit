@@ -47,7 +47,7 @@ def DM_measurement_ideal(rho: np.ndarray, basis: str ='Z'):
 
     return {'0': p_0, '1': p_1}
 
-def DM_measurement_noise(rho: np.ndarray, shots: int = 1024, basis: str = 'Z'):
+def DM_measurement_shots(rho: np.ndarray, shots: int = 1024, basis: str = 'Z'):
     """
     Simulate noisy measurement of a density matrix in a given basis.
 
@@ -59,8 +59,8 @@ def DM_measurement_noise(rho: np.ndarray, shots: int = 1024, basis: str = 'Z'):
     Returns:
         dict: Measurement outcomes and their counts.
     """
-    probabilities = DM_measurement_ideal(rho, basis)
+    probabilities = DM_measurement_ideal(rho, basis) # Get ideal measurement probabilities
     outcomes = np.random.choice(['0', '1'], size=shots, p=[probabilities['0'], probabilities['1']]) # Sample from the probability distribution with measurement shots
     
-    counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')}
+    counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')} # Count occurrences of each outcome
     return counts

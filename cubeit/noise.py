@@ -58,3 +58,19 @@ def amplitude_damping_noise(rho, gamma):
     noisy_rho = K0 @ rho @ K0.T + K1 @ rho @ K1.T
     
     return noisy_rho
+
+def bit_flip_noise(rho, p):
+    """
+    Apply bit-flip noise to a density matrix.
+
+    Args:
+        rho (np.ndarray): Density matrix of the quantum state.
+        p (float): Probability of bit-flip (0 <= p <= 1).
+
+    Returns:
+        np.ndarray: Density matrix after applying bit-flip noise.
+    """
+
+    X = np.array([[0, 1], [1, 0]])
+    noisy_rho = (1 - p) * rho + p * X @ rho @ X
+    return noisy_rho

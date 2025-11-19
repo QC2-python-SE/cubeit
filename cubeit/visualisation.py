@@ -97,29 +97,85 @@ def plot_bloch_sphere(system: QuantumRegister):
     num_qubits = system.num_qubits
     fig = plt.figure(figsize=(5 * num_qubits, 5))
     state_vectors = []
-    for i in system.state.state:
-        state_vectors.append(i)
+    elems = list(system.state.state)
+    for idx in range(0, len(elems), 2):
+        if idx + 1 < len(elems):
+            state_vectors.append([elems[idx], elems[idx + 1]])
+        else:
+            # if odd length, pair last element with 0
+            print("Odd number of elements in state vector, pairing last element with 0.")
+            state_vectors.append([elems[idx], 0+0j])
 
     for i in range(num_qubits):
         ax = fig.add_subplot(1, num_qubits, i + 1, projection='3d')
-        x, y, z = state_vectors[i].real, state_vectors[i].imag, 0
+        a, b = state_vectors[i]
+        x = 2 * np.real(a * np.conj(b))
+        y = 2 * np.imag(a * np.conj(b))
+        z = abs(a)**2 - abs(b)**2
 
-        # Draw Bloch sphere
-        u = np.linspace(0, 2 * np.pi, 100)
-        v = np.linspace(0, np.pi, 100)
+        # Draw a softly shaded Bloch sphere
+        u = np.linspace(0, 2 * np.pi, 60)
+        v = np.linspace(0, np.pi, 30)
         xs = np.outer(np.cos(u), np.sin(v))
         ys = np.outer(np.sin(u), np.sin(v))
-        zs = np.outer(np.ones(np.size(u)), np.cos(v))
-        ax.plot_surface(xs, ys, zs, color='c', alpha=0.1)
+        zs = np.outer(np.ones_like(u), np.cos(v))
 
-        # Draw state vector
-        ax.quiver(0, 0, 0, x, y, z, color='r', linewidth=2)
-        ax.set_title(f'Qubit {i}')
+        # subtle colormap shading for better depth perception
+        cmap = plt.cm.coolwarm
+        face_colors = cmap((zs + 1) / 2)
+        ax.plot_surface(xs, ys, zs, facecolors=face_colors, rstride=1, cstride=1,
+                linewidth=0, antialiased=True, alpha=0.18, shade=True)
+
+        # draw faint equator and meridian lines for reference
+        ax.plot(np.cos(u), np.sin(u), 0, color='gray', lw=0.8, alpha=0.6)
+        ax.plot(np.cos(u), np.zeros_like(u), np.sin(u), color='gray', lw=0.6, alpha=0.45)
+        ax.plot(np.zeros_like(u), np.cos(u), np.sin(u), color='gray', lw=0.6, alpha=0.45)
+
+        # normalize and draw state vector as an arrow, plus a bright marker at the tip
+        vec = np.array([x, y, z], dtype=float)
+        r = np.linalg.norm(vec)
+        if r < 1e-12:
+            vec_display = np.array([0.0, 0.0, 0.0])
+        else:
+            vec_display = vec / r  # direction
+        # scale arrow to actual radius r so pure states sit on sphere surface
+        arrow_length = r if r > 1e-12 else 0.0
+        ax.quiver(0, 0, 0, vec_display[0], vec_display[1], vec_display[2],
+              length=arrow_length, color='#D62728', linewidth=2.0,
+              arrow_length_ratio=0.12, normalize=False)
+
+        # bright marker for the state and subtle shadow for depth
+        ax.scatter([vec_display[0] * arrow_length], [vec_display[1] * arrow_length],
+               [vec_display[2] * arrow_length], color='#D62728', s=90, edgecolor='k', zorder=10)
+
+        # nice axes: show only -1, 0, 1 ticks and label them
         ax.set_xlim([-1, 1])
         ax.set_ylim([-1, 1])
         ax.set_zlim([-1, 1])
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        ax.set_xticks([-1.0, 0.0, 1.0])
+        ax.set_yticks([-1.0, 0.0, 1.0])
+        ax.set_zticks([-1.0, 0.0, 1.0])
+        ax.set_xlabel('X', fontsize=10)
+        ax.set_ylabel('Y', fontsize=10)
+        ax.set_zlabel('Z', fontsize=10)
 
+        # clean visual style: remove grid/pane colors and set aspect
+        ax.grid(False)
+        try:
+            ax.xaxis.pane.fill = False
+            ax.yaxis.pane.fill = False
+            ax.zaxis.pane.fill = False
+        except Exception:
+            pass
+        # Matplotlib 3.3+ way to ensure equal aspect ratio for 3D
+        try:
+            ax.set_box_aspect((1, 1, 1))
+        except Exception:
+            pass
+
+        # title and viewing angle for consistent, pleasing perspective
+        ax.set_title(f'Qubit {i}', fontsize=12, fontweight='semibold', pad=10)
+        ax.view_init(elev=20, azim=30)
+
+    plt.tight_layout()
     plt.show()

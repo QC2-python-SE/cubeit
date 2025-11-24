@@ -99,7 +99,7 @@ class DensityMatrix:
 
     def apply_sequence(self, gates: list, targets: list):
         """
-        Apply a sequence of single-qubit gates to the density matrix.
+        Apply a sequence of single-qubit gates to the density matrix by sequentially applying each gate.
 
         Args:
             gates (list): List of 2x2 unitary matrices representing the gates.
@@ -107,7 +107,12 @@ class DensityMatrix:
         """
 
         for gate, target in zip(gates, targets):
-            self.apply_single_qubit_gate(gate, target)
+            if gate.shape[0] == 2: # Checking it is a single-qubit gate
+                self.apply_single_qubit_gate(gate, target)
+            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
+                self.rho = gate @ self.rho @ gate.conj().T # Update density matrix with gate application
+            else:
+                raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
 
     def apply_sequence2(self, gates: np.ndarray, targets: list):
         """
@@ -119,16 +124,19 @@ class DensityMatrix:
         """
         
         dim = self.rho.shape[0]
-        
+
         total_gate = np.eye(dim, dtype=complex) # Initialize total gate as identity for 2 qubits
 
         for gate, target in zip(gates, targets):
-            if target == 0:
-                two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
-            elif target == 1:
-                two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
+            if gates.shape[1] == 2: # Checking it is a single-qubit gate
+                if target == 0:
+                    two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
+                elif target == 1:
+                    two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
+                else:
+                    raise ValueError("Target qubit index must be 0 or 1.")
             else:
-                raise ValueError("Target qubit index must be 0 or 1.")
+                two_q_gate = gate # Gate is already a two-qubit gate e.g. CX, CZ etc.
 
             total_gate = two_q_gate @ total_gate # Multiply gates together
 

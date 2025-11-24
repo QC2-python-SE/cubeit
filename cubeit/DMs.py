@@ -143,3 +143,20 @@ class DensityMatrix:
             total_gate = two_q_gate @ total_gate # Multiply gates together
 
         self.rho = total_gate @ self.rho @ total_gate.conj().T # Update density matrix with total gate application
+
+    def partial_trace(self, keep):
+        """
+        Perform partial trace on a density matrix.
+        Args:
+            keep: list of indices to keep, e.g. [0, 2] to keep subsystems 0 and 2
+            Returns:
+                reduced density matrix after tr acing out unwanted subsystems
+        """
+        dims = [2] * self.rho.shape[0]
+        N = len(dims)
+        reshaped = self.rho.reshape(dims + dims) # for a two qubit system this will reshape from (4,4) to (2,2,2,2)
+        traced = reshaped
+        for i in reversed(range(N)): # looping backwards avoids messing up the axis indices
+            if i not in keep:
+                traced = np.trace(traced, axis1=i, axis2=i+N)
+        return traced

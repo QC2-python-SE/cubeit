@@ -114,7 +114,7 @@ class DensityMatrix:
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
 
-    def apply_sequence2(self, gates: np.ndarray, targets: list):
+    def apply_sequence2(self, gates: list, targets: list):
         """
         Apply a sequence of gates to a density matrix by multiplying the gates together first.
 
@@ -128,15 +128,17 @@ class DensityMatrix:
         total_gate = np.eye(dim, dtype=complex) # Initialize total gate as identity for 2 qubits
 
         for gate, target in zip(gates, targets):
-            if gates.shape[1] == 2: # Checking it is a single-qubit gate
+            if gate.shape[1] == 2: # Checking it is a single-qubit gate
                 if target == 0:
                     two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
                 elif target == 1:
                     two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
                 else:
                     raise ValueError("Target qubit index must be 0 or 1.")
+            elif gate.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
+                two_q_gate = gate
             else:
-                two_q_gate = gate # Gate is already a two-qubit gate e.g. CX, CZ etc.
+                raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
 
             total_gate = two_q_gate @ total_gate # Multiply gates together
 

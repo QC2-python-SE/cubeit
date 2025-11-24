@@ -84,6 +84,60 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
 # write von neumann entropy function to show entanglement
 # do some tests
 
+def partial_trace(rho, keep, dims):
+    """
+    Perform partial trace on a density matrix.
+    Args:
+        rho: density matrix to trace
+        keep: list of indices to keep, e.g. [0, 2] to keep subsystems 0 and 2
+        dims: list of dimensions for each subsystem, e.g. [2, 2, 2] for three qubits
+        Returns:
+            reduced density matrix after tracing out unwanted subsystems
+    """
+    N = len(dims)
+    reshaped = rho.reshape(dims + dims) # for a two qubit system this will reshape from (4,4) to (2,2,2,2)
+    traced = reshaped
+    for i in reversed(range(N)): # looping backwards avoids messing up the axis indices
+        if i not in keep:
+            traced = np.trace(traced, axis1=i, axis2=i+N)
+    return traced
+
+def state_to_reduced_density_matrix(system: QuantumRegister):
+    """
+    Convert a statvector into a list of reduced density matrices.
+    Args:
+        system: an instance of the class QuantumRegister
+    Returns:
+        rhos: list of reduced density matrices
+    """
+    state_vector = system.state.state
+    rho = np.outer(state_vector, np.conj(state_vector))
+    dims = [2] * system.num_qubits
+    rhos = []
+    for i in range(system.num_qubits):
+        rho_i = partial_trace(rho, [i], dims)
+        rhos.append(rho_i)
+    return rhos    
+
+def bloch_from_density(rho):
+    """
+    Convert a single-qubit density matrix to its Bloch vector representation.   
+    Args:
+        rho: 2x2 density matrix of the qubit
+    Returns:
+        3-element array representing the Bloch vector (bx, by, bz)
+    """
+    # Pauli matrices
+    X = np.array([[0,1],[1,0]], dtype=complex)
+    Y = np.array([[0,-1j],[1j,0]], dtype=complex)
+    Z = np.array([[1,0],[0,-1]], dtype=complex)
+
+    # Calculate Bloch vector components by taking traces with Pauli matrices
+    bx = np.real(np.trace(rho @ X))
+    by = np.real(np.trace(rho @ Y))
+    bz = np.real(np.trace(rho @ Z))
+    return np.array([bx, by, bz])
+
 def plot_bloch_sphere(system: QuantumRegister):
     """
     Plot the Bloch sphere representation of each qubit in the QuantumRegister.
@@ -94,24 +148,18 @@ def plot_bloch_sphere(system: QuantumRegister):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
+    rhos = state_to_reduced_density_matrix(system)
+    state_vectors = []
+    for rho in rhos:
+        state_vectors.append(bloch_from_density(rho))
+
     num_qubits = system.num_qubits
     fig = plt.figure(figsize=(5 * num_qubits, 5))
-    state_vectors = []
-    elems = list(system.state.state)
-    for idx in range(0, len(elems), 2):
-        if idx + 1 < len(elems):
-            state_vectors.append([elems[idx], elems[idx + 1]])
-        else:
-            # if odd length, pair last element with 0
-            print("Odd number of elements in state vector, pairing last element with 0.")
-            state_vectors.append([elems[idx], 0+0j])
 
     for i in range(num_qubits):
         ax = fig.add_subplot(1, num_qubits, i + 1, projection='3d')
-        a, b = state_vectors[i]
-        x = 2 * np.real(a * np.conj(b))
-        y = 2 * np.imag(a * np.conj(b))
-        z = abs(a)**2 - abs(b)**2
+        ax.set_title(f'Qubit {i+1}', fontsize=12, fontweight='semibold', pad=10)
+        x,y,z = state_vectors[i]
 
         # Draw a softly shaded Bloch sphere
         u = np.linspace(0, 2 * np.pi, 60)

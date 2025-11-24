@@ -64,3 +64,72 @@ def DM_measurement_shots(rho: np.ndarray, shots: int = 1024, basis: str = 'Z'):
     
     counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')} # Count occurrences of each outcome
     return counts
+
+class DensityMatrix:
+    """
+    Class representing a density matrix and providing methods for measurement.
+    """
+
+    def __init__(self, rho: np.ndarray):
+        """
+        Initialize the DensityMatrix with a state vector.
+
+        Args:
+            state_vector (np.ndarray): State vector of the quantum state.
+        """
+        self.rho = rho
+
+    def apply_single_qubit_gate(self, gate: np.ndarray, target: int):
+        """
+        Apply a single-qubit gate to the density matrix.
+
+        Args:
+            gate (np.ndarray): 2x2 unitary matrix representing the gate.
+        """
+        # First try this way that sequentially applies gates to the density matrix.
+
+        if target == 0:
+            two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
+        elif target == 1:
+            two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
+        else:
+            raise ValueError("Target qubit index must be 0 or 1.")
+
+        self.rho = two_q_gate @ self.rho @ two_q_gate.conj().T # Update density matrix with gate application
+
+    def apply_sequence(self, gates: list, targets: list):
+        """
+        Apply a sequence of single-qubit gates to the density matrix.
+
+        Args:
+            gates (list): List of 2x2 unitary matrices representing the gates.
+            targets (list): List of target qubit indices for each gate.
+        """
+
+        for gate, target in zip(gates, targets):
+            self.apply_single_qubit_gate(gate, target)
+
+    def apply_sequence2(self, gates: np.ndarray, targets: list):
+        """
+        Apply a sequence of gates to a density matrix by multiplying the gates together first.
+
+        Args:
+            gates (np.ndarray): Array of 2x2 unitary matrices representing the gates.
+            targets (list): List of target qubit indices for each gate.
+        """
+        
+        dim = self.rho.shape[0]
+        
+        total_gate = np.eye(dim, dtype=complex) # Initialize total gate as identity for 2 qubits
+
+        for gate, target in zip(gates, targets):
+            if target == 0:
+                two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
+            elif target == 1:
+                two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
+            else:
+                raise ValueError("Target qubit index must be 0 or 1.")
+
+            total_gate = two_q_gate @ total_gate # Multiply gates together
+
+        self.rho = total_gate @ self.rho @ total_gate.conj().T # Update density matrix with total gate application

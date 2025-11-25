@@ -9,9 +9,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="cubeit",
-    version="0.1.0",
+    version="0.2.0",
     author="CubeIt Development Team",
-    description="A quantum software package for two-qubit systems with universal gate set",
+    description="A quantum software package for n-qubit systems with universal gate set",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/cubeit",

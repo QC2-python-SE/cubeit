@@ -65,7 +65,7 @@ def DM_measurement_shots(rho: np.ndarray, shots: int = 1024, basis: str = 'Z'):
     counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')} # Count occurrences of each outcome
     return counts
 
-class DensityMatrix:
+class DensityMatrix2Qubit:
     """
     Class representing a density matrix and providing methods for measurement.
     """
@@ -144,13 +144,14 @@ class DensityMatrix:
 
         self.rho = total_gate @ self.rho @ total_gate.conj().T # Update density matrix with total gate application
 
-    def partial_trace(self, keep):
+    def partial_trace(self, keep: list):
         """
         Perform partial trace on a density matrix.
         Args:
             keep: list of indices to keep, e.g. [0, 2] to keep subsystems 0 and 2
-            Returns:
-                reduced density matrix after tr acing out unwanted subsystems
+        
+        Returns:
+            reduced density matrix after tracing out unwanted subsystems
         """
         dims = [2] * self.rho.shape[0]
         N = len(dims)
@@ -160,3 +161,18 @@ class DensityMatrix:
             if i not in keep:
                 traced = np.trace(traced, axis1=i, axis2=i+N)
         return traced
+    
+
+    def apply_sequence_noise(self, gates: list, targets: list, noise_channels: list):
+        """
+        Apply a sequence of gates to a density matrix with noise channels after each gate.
+
+        Args:
+            gates (list): List of 2x2 unitary matrices representing the gates.
+            targets (list): List of target qubit indices for each gate.
+            noise_channels (list): List of noise channel functions to apply after each gate.
+        """
+
+        for gate, target, noise in zip(gates, targets, noise_channels):
+            self.apply_sequence2([gate], [target]) # Apply the gate
+            self.rho = noise(self.rho, target) # Apply noise channel to the density matrix

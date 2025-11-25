@@ -7,6 +7,12 @@ from typing import List, Tuple
 from .register import _QuantumRegister as QuantumRegister, QuantumState
 
 
+def _get_quantumregister():
+    """Lazy import to avoid circular dependency."""
+    from . import quantumregister
+    return quantumregister
+
+
 def print_state(system: QuantumRegister):
     """Print the current quantum state in a readable format."""
     print(system.get_state().to_string())
@@ -30,7 +36,7 @@ def simulate_measurements(system: QuantumRegister, num_samples: int = 1000) -> d
     Simulate multiple measurements and return statistics.
     
     Args:
-        system: Two-qubit system to measure
+        system: Quantum register to measure
         num_samples: Number of measurements to perform
     
     Returns:
@@ -56,7 +62,7 @@ def print_measurement_stats(system: QuantumRegister, num_samples: int = 1000):
     Print measurement statistics from multiple simulations.
     
     Args:
-        system: Two-qubit system to measure
+        system: Quantum register to measure
         num_samples: Number of measurements to perform
     """
     counts = simulate_measurements(system, num_samples)
@@ -72,17 +78,57 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
     Calculate fidelity between two quantum states.
     
     Args:
-        system1: First two-qubit system
-        system2: Second two-qubit system
+        system1: First quantum register
+        system2: Second quantum register
     
     Returns:
         Fidelity value between 0 and 1
     """
     return system1.get_state().fidelity(system2.get_state())
 
-# write function take cubeit QuantumRegister and plot the bloch sphere representation of each qubit in the register
-# write von neumann entropy function to show entanglement
-# do some tests
+
+def create_bell_state(state_type: str = "phi_plus") -> QuantumRegister:
+    """
+    Create a Bell state (maximally entangled state).
+    
+    Args:
+        state_type: Type of Bell state
+            - "phi_plus":  (|00⟩ + |11⟩) / √2
+            - "phi_minus": (|00⟩ - |11⟩) / √2
+            - "psi_plus":  (|01⟩ + |10⟩) / √2
+            - "psi_minus": (|01⟩ - |10⟩) / √2
+    
+    Returns:
+        Quantum register in the specified Bell state
+    """
+    quantumregister = _get_quantumregister()
+    system = quantumregister(2)  # Bell states are for 2 qubits
+    
+    if state_type == "phi_plus":
+        # |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
+        system.h(0)
+        system.cnot(0, 1)
+    elif state_type == "phi_minus":
+        # |Φ⁻⟩ = (|00⟩ - |11⟩) / √2
+        system.h(0)
+        system.z(0)  # Apply Z before CNOT
+        system.cnot(0, 1)
+    elif state_type == "psi_plus":
+        # |Ψ⁺⟩ = (|01⟩ + |10⟩) / √2
+        system.h(0)
+        system.x(1)  # Flip qubit 1
+        system.cnot(0, 1)
+    elif state_type == "psi_minus":
+        # |Ψ⁻⟩ = (|01⟩ - |10⟩) / √2
+        system.h(0)
+        system.x(1)  # Flip qubit 1
+        system.z(0)  # Apply Z before CNOT
+        system.cnot(0, 1)
+    else:
+        raise ValueError(f"Unknown Bell state type: {state_type}")
+    
+    return system
+
 
 def plot_bloch_sphere(system: QuantumRegister):
     """
@@ -123,3 +169,4 @@ def plot_bloch_sphere(system: QuantumRegister):
         ax.set_zlabel('Z')
 
     plt.show()
+

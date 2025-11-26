@@ -48,23 +48,58 @@ def DM_measurement_ideal(rho: np.ndarray, basis: str ='Z'):
 
     return {'0': p_0, '1': p_1}
 
-def DM_measurement_shots(rho: np.ndarray, shots: int = 1024, basis: str = 'Z'):
+def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
     """
     Simulate noisy measurement of a density matrix in a given basis.
 
     Args:
         rho (np.ndarray): Density matrix of the quantum state.
-        shots (int): Number of measurement shots to simulate.
+        shots (np.ndarray): Array of measurement shots to simulate.
         basis (str): Measurement basis (One of Pauli X,Y,Z).
 
     Returns:
-        dict: Measurement outcomes and their counts.
+        np.ndarray: Noisy measurement outcomes for '0' and '1'.
+        dict: Ideal measurement probabilities.
     """
-    probabilities = DM_measurement_ideal(rho, basis) # Get ideal measurement probabilities
-    outcomes = np.random.choice(['0', '1'], size=shots, p=[probabilities['0'], probabilities['1']]) # Sample from the probability distribution with measurement shots
+
+    probs = DM_measurement_ideal(rho, basis) # Get ideal measurement probabilities
     
-    counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')} # Count occurrences of each outcome
-    return counts
+    shots = [int(s) for s in shots]
+    noisy_0 = np.empty(len(shots))
+    noisy_1 = np.empty(len(shots))
+    
+    for idx, shot in enumerate(shots):
+        outcomes = np.random.choice(['0', '1'], size=shot, p=[probs['0'], probs['1']]) # Sample from the probability distribution with measurement shots
+        counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')} # Count occurrences of each outcome
+        noisy_0[idx] = counts['0'] / shot
+        noisy_1[idx] = counts['1'] / shot
+
+    return noisy_0, noisy_1, probs
+
+def DM_measurement_shots_noisy(rho, shots=1024, basis='Z',
+                               p01=0.02, p10=0.05):
+    """
+    Simulate measurement of a density matrix with readout noise.
+    p01: probability of 0 -> 1 misread
+    p10: probability of 1 -> 0 misread
+    """
+
+    probs = DM_measurement_ideal(rho, basis) # Ideal projective measurement probabilities
+
+    ideal = np.random.choice(['0','1'], size=shots, p=[probs['0'], probs['1']]) # Sample ideal outcomes
+
+    noisy = []
+    for outcome in ideal:
+        if outcome == '0':
+            noisy.append('1' if np.random.rand() < p01 else '0')
+        else:  # outcome == '1'
+            noisy.append('0' if np.random.rand() < p10 else '1')
+
+    # Count outcomes
+    return {
+        '0': noisy.count('0'),
+        '1': noisy.count('1')
+    }
 
 class DensityMatrix2Qubit:
     """

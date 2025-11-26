@@ -3,6 +3,7 @@ Module for handling density matrices (DMs) in the cubeit package.
 """
 
 import numpy as np
+from noise import *
 
 def create_density_matrix(state_vector):
     """
@@ -163,16 +164,38 @@ class DensityMatrix2Qubit:
         return traced
     
 
-    def apply_sequence_noise(self, gates: list, targets: list, noise_channels: list):
+    def apply_sequence_noise(self, gates: list, targets: list, noise_channels: dict):
         """
-        Apply a sequence of gates to a density matrix with noise channels after each gate.
+        Apply a sequence of gates to a density matrix with noise channels after each individual gate.
 
         Args:
             gates (list): List of 2x2 unitary matrices representing the gates.
             targets (list): List of target qubit indices for each gate.
-            noise_channels (list): List of noise channel functions to apply after each gate.
+            noise_channels (dict): List of noise channels to apply after each gate with corresponding probabilities.
         """
 
-        for gate, target, noise in zip(gates, targets, noise_channels):
-            self.apply_sequence2([gate], [target]) # Apply the gate
-            self.rho = noise(self.rho, target) # Apply noise channel to the density matrix
+        allowed = {'depolarising', 'dephasing', 'amplitude_damping', 'bit flip'} # Define the allowed noise channels
+
+        invalid = set(noise_channels) - allowed # Find the invalid keys
+
+        if invalid:
+            raise ValueError(f"Invalid noise channels: {invalid}. \n Allowed channels are: {allowed}.")
+
+        for gate, target in zip(gates, targets):
+            if gate.shape[0] == 2: # Checking it is a single-qubit gate
+                self.apply_single_qubit_gate(gate, target)
+            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
+                self.rho = gate @ self.rho @ gate.conj().T # Update density matrix with gate application
+            else:
+                raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
+
+            # Apply noise channel after each gate
+            if 'depolarising' in noise_channels:
+                self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
+            elif 'dephasing' in noise_channels:
+                self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
+            elif 'amplitude_damping' in noise_channels:
+                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
+            elif 'bit flip' in noise_channels:
+                self.rho = bit_flip_noise(self.rho, p=noise_channels)
+        

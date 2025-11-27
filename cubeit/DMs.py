@@ -31,22 +31,36 @@ def DM_measurement_ideal(rho: np.ndarray, basis: str ='Z'):
         dict: Measurement outcomes and their probabilities.
     """
 
+    n = rho.shape[0]
+    
+    proj_0z = np.array([[1, 0], [0, 0]]) # Create projector for |0><0|
+    proj_1z = np.array([[0, 0], [0, 1]]) # Create projector for |1><1|
+    proj_0x = 0.5 * np.array([[1, 1], [1, 1]]) # Create projector for |+><+|
+    proj_1x = 0.5 * np.array([[1, -1], [-1, 1]]) # Create projector for |-><-|
+    proj_0y = 0.5 * np.array([[1, -1j], [1j, 1]]) # Create projector for |i><i|
+    proj_1y = 0.5 * np.array([[1, 1j], [-1j, 1]]) # Create projector for |-i><-i|
+
     if basis == 'Z':
-        proj_0 = np.array([[1, 0], [0, 0]]) # Create projector for |0><0|
-        proj_1 = np.array([[0, 0], [0, 1]]) # Create projector for |1><1|
+        if n == 1:
+            projectors = [proj_0z, proj_1z]
+        elif n == 2:
+            projectors = [np.kron(proj_0z, proj_0z), np.kron(proj_0z, proj_1z), np.kron(proj_1z, proj_0z), np.kron(proj_1z, proj_1z)]
     elif basis == 'X':
-        proj_0 = 0.5 * np.array([[1, 1], [1, 1]]) # Create projector for |+><+|
-        proj_1 = 0.5 * np.array([[1, -1], [-1, 1]]) # Create projector for |-><-|
+        if n == 1:
+            projectors = [proj_0x, proj_1x]
+        elif n == 2:
+            projectors = [np.kron(proj_0x, proj_0x), np.kron(proj_0x, proj_1x), np.kron(proj_1x, proj_0x), np.kron(proj_1x, proj_1x)]
     elif basis == 'Y':
-        proj_0 = 0.5 * np.array([[1, -1j], [1j, 1]]) # Create projector for |i><i|
-        proj_1 = 0.5 * np.array([[1, 1j], [-1j, 1]]) # Create projector for |-i><-i|
+        if n == 1:
+            projectors = [proj_0y, proj_1y]
+        elif n == 2:
+            projectors = [np.kron(proj_0y, proj_0y), np.kron(proj_0y, proj_1y), np.kron(proj_1y, proj_0y), np.kron(proj_1y, proj_1y)]
     else:
         raise ValueError("Basis must be one of 'X', 'Y', or 'Z'.")
 
-    p_0 = np.trace(proj_0 @ rho).real # Calculate probability for outcome 0
-    p_1 = np.trace(proj_1 @ rho).real # Calculate probability for outcome 1
+    probs = np.array([np.trace(P @ rho).real for P in projectors])
 
-    return {'0': p_0, '1': p_1}
+    return probs
 
 def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
     """
@@ -224,7 +238,7 @@ class DensityMatrix2Qubit:
             noise_channels (dict): List of noise channels to apply after each gate with corresponding probabilities.
         """
 
-        allowed = {'depolarising', 'dephasing', 'amplitude_damping', 'bit flip'} # Define the allowed noise channels
+        allowed = {'depolarising', 'dephasing', 'amplitude damping', 'bit flip'} # Define the allowed noise channels
 
         invalid = set(noise_channels) - allowed # Find the invalid keys
 
@@ -249,7 +263,7 @@ class DensityMatrix2Qubit:
             elif 'bit flip' in noise_channels:
                 self.rho = bit_flip_noise(self.rho, p=noise_channels)
 
-    def measure_ideal(self, basis='Z'):
+    def measure_ideal(self, basis: str ='Z'):
         """
         Return ideal measurement probabilities for this density matrix.
         
@@ -262,7 +276,7 @@ class DensityMatrix2Qubit:
         return DM_measurement_ideal(self.rho, basis)
 
     
-    def DM_measurement_shots_noisy(self, shots, basis='Z', p01=0.02, p10=0.05):
+    def measure_shots(self, shots: list, basis: str ='Z', p01: float =0.02, p10: float =0.05):
         """
         Method to simulate noisy measurement of the density matrix.
 
@@ -284,9 +298,12 @@ class DensityMatrix2Qubit:
             p10=p10
         )
     
-    def clean(self, tol=1e-10):
+    def clean(self, tol: float = 1e-12):
         """
         Set any entries with real or imaginary part < tol to 0.
+
+        Args:
+            tol (float): The tolerance below which real or imaginary parts are rounded to zero
         """
         real = np.where(np.abs(self.rho.real) < tol, 0, self.rho.real)
         imag = np.where(np.abs(self.rho.imag) < tol, 0, self.rho.imag)

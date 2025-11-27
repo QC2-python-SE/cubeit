@@ -225,5 +225,14 @@ def plot_bloch_sphere(system: QuantumRegister):
         ax.set_title(f'Qubit {i}', fontsize=12, fontweight='semibold', pad=10)
         ax.view_init(elev=20, azim=30)
 
+        # Add labels for |0> at the north pole (z=1) and |1> at the south pole (z=-1)
+        # Slightly offset in z so the text doesn't overlap the sphere surface
+        try:
+            ax.text(0.0, 0.0, 1.08, '|0⟩', fontsize=12, ha='center', va='bottom')
+            ax.text(0.0, 0.0, -1.1, '|1⟩', fontsize=12, ha='center', va='top')
+        except Exception:
+            # Some matplotlib/MPL backends may raise for 3D text; ignore failures
+            pass
+
     plt.tight_layout()
     plt.show()

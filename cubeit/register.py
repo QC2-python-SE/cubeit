@@ -145,6 +145,8 @@ class _QuantumRegister:
             if len(initial_state.state) != self.dim:
                 raise ValueError(f"State vector must have {self.dim} components for {num_qubits} qubits")
             self.state = initial_state
+
+        self.history = []  # To store applied gates for circuit representation
     
     def apply_gate(self, gate_matrix: np.ndarray):
         """
@@ -378,84 +380,98 @@ class _QuantumRegister:
         """Apply a Hadamard gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["h"](), qubit)
+        self.history.append([qubit, 'h'])
         return self
 
     def x(self, qubit: int) -> "_QuantumRegister":
         """Apply a Pauli-X gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["x"](), qubit)
+        self.history.append([qubit, 'x'])
         return self
 
     def y(self, qubit: int) -> "_QuantumRegister":
         """Apply a Pauli-Y gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["y"](), qubit)
+        self.history.append([qubit, 'y'])
         return self
 
     def z(self, qubit: int) -> "_QuantumRegister":
         """Apply a Pauli-Z gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["z"](), qubit)
+        self.history.append([qubit, 'z'])
         return self
 
     def s(self, qubit: int) -> "_QuantumRegister":
         """Apply an S-phase gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["s"](), qubit)
+        self.history.append([qubit, 's'])
         return self
 
     def t(self, qubit: int) -> "_QuantumRegister":
         """Apply a T gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["t"](), qubit)
+        self.history.append([qubit, 't'])
         return self
 
     def phase(self, qubit: int, phi: float) -> "_QuantumRegister":
         """Apply an arbitrary phase rotation to ``qubit``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["phase"](phi), qubit)
+        self.history.append([qubit, 'phase'])
         return self
 
     def rx(self, qubit: int, theta: float) -> "_QuantumRegister":
         """Apply an ``Rx(theta)`` rotation and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["rotation_x"](theta), qubit)
+        self.history.append([qubit, 'rx'])
         return self
 
     def ry(self, qubit: int, theta: float) -> "_QuantumRegister":
         """Apply an ``Ry(theta)`` rotation and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["rotation_y"](theta), qubit)
+        self.history.append([qubit, 'ry'])
         return self
 
     def rz(self, qubit: int, theta: float) -> "_QuantumRegister":
         """Apply an ``Rz(theta)`` rotation and return ``self``."""
         gates = self._import_gates()
         self.apply_single_qubit_gate(gates["rotation_z"](theta), qubit)
+        self.history.append([qubit, 'rz'])
         return self
 
     def cnot(self, control: int, target: int) -> "_QuantumRegister":
         """Apply a CNOT gate with ``control`` and ``target`` qubits."""
         gates = self._import_gates()
         self.apply_two_qubit_gate(gates["cnot"](), control, target)
+        self.history.append([control, target, 'cnot'])
         return self
 
     def cz(self, control: int, target: int) -> "_QuantumRegister":
         """Apply a controlled-Z gate."""
         gates = self._import_gates()
         self.apply_two_qubit_gate(gates["cz"](), control, target)
+        self.history.append([control, target, 'cz'])
         return self
 
     def swap(self, qubit1: int, qubit2: int) -> "_QuantumRegister":
         """Swap two qubits and return ``self``."""
         gates = self._import_gates()
         self.apply_two_qubit_gate(gates["swap"](), qubit1, qubit2)
+        self.history.append([qubit1, qubit2, 'swap'])
         return self
 
     def cphase(self, control: int, target: int, phi: float) -> "_QuantumRegister":
         """Apply a controlled-phase gate with angle ``phi``."""
         gates = self._import_gates()
         self.apply_two_qubit_gate(gates["cphase"](phi), control, target)
+        self.history.append([control, target, 'cphase'])
         return self
     
     def __repr__(self):

@@ -4,6 +4,7 @@ Module for handling density matrices (DMs) in the cubeit package.
 
 import numpy as np
 from cubeit.noise import *
+from itertools import product
 
 def create_density_matrix(state_vector):
     """
@@ -31,7 +32,7 @@ def DM_measurement_ideal(rho: np.ndarray, basis: str ='Z'):
         dict: Measurement outcomes and their probabilities.
     """
 
-    n = rho.shape[0]
+    n = int(np.sqrt(rho.shape[0])) # Number of qubits
     
     proj_0z = np.array([[1, 0], [0, 0]]) # Create projector for |0><0|
     proj_1z = np.array([[0, 0], [0, 1]]) # Create projector for |1><1|
@@ -44,21 +45,43 @@ def DM_measurement_ideal(rho: np.ndarray, basis: str ='Z'):
         if n == 1:
             projectors = [proj_0z, proj_1z]
         elif n == 2:
-            projectors = [np.kron(proj_0z, proj_0z), np.kron(proj_0z, proj_1z), np.kron(proj_1z, proj_0z), np.kron(proj_1z, proj_1z)]
+            projectors = [
+                np.kron(proj_0z, proj_0z),
+                np.kron(proj_0z, proj_1z),
+                np.kron(proj_1z, proj_0z),
+                np.kron(proj_1z, proj_1z)
+            ]
+        else:
+            raise ValueError("Only 1 or 2 qubits supported")
     elif basis == 'X':
         if n == 1:
             projectors = [proj_0x, proj_1x]
         elif n == 2:
-            projectors = [np.kron(proj_0x, proj_0x), np.kron(proj_0x, proj_1x), np.kron(proj_1x, proj_0x), np.kron(proj_1x, proj_1x)]
+            projectors = [
+                np.kron(proj_0x, proj_0x),
+                np.kron(proj_0x, proj_1x),
+                np.kron(proj_1x, proj_0x),
+                np.kron(proj_1x, proj_1x)
+            ]
+        else:
+            raise ValueError("Only 1 or 2 qubits supported")
     elif basis == 'Y':
         if n == 1:
             projectors = [proj_0y, proj_1y]
         elif n == 2:
-            projectors = [np.kron(proj_0y, proj_0y), np.kron(proj_0y, proj_1y), np.kron(proj_1y, proj_0y), np.kron(proj_1y, proj_1y)]
+            projectors = [
+                np.kron(proj_0y, proj_0y),
+                np.kron(proj_0y, proj_1y),
+                np.kron(proj_1y, proj_0y),
+                np.kron(proj_1y, proj_1y)
+            ]
+        else:
+            raise ValueError("Only 1 or 2 qubits supported")
     else:
         raise ValueError("Basis must be one of 'X', 'Y', or 'Z'.")
 
-    probs = np.array([np.trace(P @ rho).real for P in projectors])
+    outcomes = [''.join(bits) for bits in product('01', repeat=n)] # Generate outcome labels based on number of qubits
+    probs = {outcome: np.trace(P @ rho).real for outcome, P in zip(outcomes, projectors)}
 
     return probs
 
@@ -72,63 +95,75 @@ def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
         basis (str): Measurement basis (One of Pauli X,Y,Z).
 
     Returns:
-        np.ndarray: Noisy measurement outcomes for '0' and '1'.
+        list of dicts: Fractions of each outcome for each shot number.
         dict: Ideal measurement probabilities.
     """
 
-    probs = DM_measurement_ideal(rho, basis) # Get ideal measurement probabilities
-    
-    shots = [int(s) for s in shots] # Ensure shots are integers
-    noisy_0 = np.empty(len(shots)) # Intialise arrays to hold noisy measurement results
-    noisy_1 = np.empty(len(shots))
-    
-    for idx, shot in enumerate(shots):
-        outcomes = np.random.choice(['0', '1'], size=shot, p=[probs['0'], probs['1']]) # Sample from the probability distribution with measurement shots
-        counts = {'0': np.sum(outcomes == '0'), '1': np.sum(outcomes == '1')} # Count occurrences of each outcome
-        noisy_0[idx] = counts['0'] / shot # Store the fraction of '0' and '1' outcomes
-        noisy_1[idx] = counts['1'] / shot
+    probs = DM_measurement_ideal(rho, basis)  # ideal probabilities as dict: {'00':0.5, '01':0.0, ...}
 
-    return noisy_0, noisy_1, probs
+    # All possible outcomes as strings
+    outcomes_list = list(probs.keys())
+    probs_list = [probs[k] for k in outcomes_list]
 
-def DM_measurement_shots_noisy(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p01: float =0.02, p10: float =0.05):
+    shots = [int(s) for s in shots]  # ensure integer
+    results = []
+
+    for shot in shots:
+        # Sample outcomes according to probabilities
+        sampled = np.random.choice(outcomes_list, size=shot, p=probs_list)
+        counts = {k: np.sum(sampled == k) / shot for k in outcomes_list}  # fraction of each outcome
+        results.append(counts)
+
+    return results, probs
+
+def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip: dict = None):
     """
-    Simulate measurement of a density matrix with readout noise.
-    
+    Simulate measurement of a density matrix with readout noise for n qubits.
+
     Args:
         rho (np.ndarray): Density matrix of the quantum state.
         shots (np.ndarray): Number of measurement shots to simulate.
         basis (str): Measurement basis (One of Pauli X,Y,Z).
-        p01 (float): Probability of misreading '0' as '1'.
-        p10 (float): Probability of misreading '1' as '0'.
+        p_flip (dict): Dictionary of bit-flip probabilities for each bit:
+            e.g., {'01': 0.02, '10': 0.05} for single qubit. For n qubits,
+            the same flip probabilities are applied independently to each qubit.
 
     Returns:
-        np.ndarray: Noisy measurement outcomes for '0' and '1'.
-        dict: Ideal measurement probabilities.
+        list of dicts: Noisy measurement fractions for each outcome per shot number.
+        dict: Ideal measurement probabilities for each outcome.
     """
 
-    probs = DM_measurement_ideal(rho, basis) # Ideal projective measurement probabilities
+    if p_flip is None:
+        p_flip = {'p01': 0.02, 'p10': 0.05}
 
-    shots = [int(s) for s in shots] # Ensure shots are integers
-    noisy_0 = np.empty(len(shots)) # Intialise arrays to hold noisy measurement results
-    noisy_1 = np.empty(len(shots))
+    # Get ideal probabilities as a dictionary of bitstring outcomes
+    probs = DM_measurement_ideal(rho, basis)  # e.g., {'00': 0.5, '01':0, '10':0, '11':0.5}
 
-    for idx, shot in enumerate(shots):
-        ideal = np.random.choice(['0','1'], size=shot, p=[probs['0'], probs['1']]) # Sample ideal outcomes
+    outcomes_list = list(probs.keys())
+    probs_list = [probs[k] for k in outcomes_list]
 
-        noisy = []
-        for outcome in ideal: # Apply readout noise to each non ideal outcome
-            if outcome == '0':
-                noisy.append('1' if np.random.rand() < p01 else '0')
-            else:  # outcome == '1'
-                noisy.append('0' if np.random.rand() < p10 else '1')
-        
-        counts = {'0': np.sum(noisy == '0'), '1': np.sum(noisy == '1')} # Count occurrences of each outcome
+    shots = [int(s) for s in shots]  # ensure integer
+    results = []
 
-        noisy_0[idx] = counts['0'] / shot # Store the fraction of '0' and '1' outcomes for this number of shots
-        noisy_1[idx] = counts['1'] / shot
+    for shot in shots:
+        # Sample ideal outcomes according to probabilities
+        sampled = np.random.choice(outcomes_list, size=shot, p=probs_list)
 
-    # Count outcomes
-    return noisy_0, noisy_1, probs
+        noisy_sampled = []
+        for bitstring in sampled:
+            noisy_bits = ''
+            for bit in bitstring:
+                if bit == '0':
+                    noisy_bits += '1' if np.random.rand() < p_flip['p01'] else '0'
+                else:  # bit == '1'
+                    noisy_bits += '0' if np.random.rand() < p_flip['p10'] else '1'
+            noisy_sampled.append(noisy_bits)
+
+        # Count fractions of each outcome
+        counts = {k: np.sum(np.array(noisy_sampled) == k)/shot for k in outcomes_list}
+        results.append(counts)
+
+    return results, probs
 
 class DensityMatrix2Qubit:
     """
@@ -276,26 +311,24 @@ class DensityMatrix2Qubit:
         return DM_measurement_ideal(self.rho, basis)
 
     
-    def measure_shots(self, shots: list, basis: str ='Z', p01: float =0.02, p10: float =0.05):
+    def measure_shots(self, shots: list, basis: str ='Z', pdict: dict = {'p01': 0.02, 'p10': 0.05}):
         """
         Method to simulate noisy measurement of the density matrix.
 
         Args:
             shots (list or array): Number of measurement shots.
             basis (str): 'X', 'Y', or 'Z'.
-            p01 (float): Probability of misreading '0' as '1'.
-            p10 (float): Probability of misreading '1' as '0'.
-
+            pdict (dict): Dictionary containing readout error probabilities:
+            
         Returns:
             np.ndarray: Noisy measurement outcomes for '0' and '1'.
             dict: Ideal measurement probabilities.
         """
-        return DM_measurement_shots_noisy(
+        return DM_measurement_shots_noise(
             self.rho,
             shots,
             basis=basis,
-            p01=p01,
-            p10=p10
+            p_flip=pdict
         )
     
     def clean(self, tol: float = 1e-12):

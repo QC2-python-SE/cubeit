@@ -3,7 +3,7 @@ Module for handling density matrices (DMs) in the cubeit package.
 """
 
 import numpy as np
-from noise import *
+from cubeit.noise import *
 
 def create_density_matrix(state_vector):
     """
@@ -122,13 +122,13 @@ class DensityMatrix2Qubit:
     """
 
     def __init__(self, rho: np.ndarray):
-        """
-        Initialize the DensityMatrix with a state vector.
-
-        Args:
-            state_vector (np.ndarray): State vector of the quantum state.
-        """
         self.rho = rho
+
+    def __repr__(self):
+        return f"DensityMatrix2Qubit(\n{self.rho}\n)"
+
+    def __str__(self):
+        return self.__repr__()
 
     def apply_single_qubit_gate(self, gate: np.ndarray, target: int):
         """
@@ -179,14 +179,14 @@ class DensityMatrix2Qubit:
         total_gate = np.eye(dim, dtype=complex) # Initialize total gate as identity for 2 qubits
 
         for gate, target in zip(gates, targets):
-            if gate.shape[1] == 2: # Checking it is a single-qubit gate
+            if gate.shape[0] == 2: # Checking it is a single-qubit gate
                 if target == 0:
                     two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
                 elif target == 1:
                     two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
                 else:
                     raise ValueError("Target qubit index must be 0 or 1.")
-            elif gate.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
+            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
                 two_q_gate = gate
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
@@ -248,4 +248,46 @@ class DensityMatrix2Qubit:
                 self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
             elif 'bit flip' in noise_channels:
                 self.rho = bit_flip_noise(self.rho, p=noise_channels)
+
+    def measure_ideal(self, basis='Z'):
+        """
+        Return ideal measurement probabilities for this density matrix.
         
+        Args:
+            basis (str): 'X', 'Y', or 'Z'.
+        
+        Returns:
+            dict: Ideal measurement probabilities.
+        """
+        return DM_measurement_ideal(self.rho, basis)
+
+    
+    def DM_measurement_shots_noisy(self, shots, basis='Z', p01=0.02, p10=0.05):
+        """
+        Method to simulate noisy measurement of the density matrix.
+
+        Args:
+            shots (list or array): Number of measurement shots.
+            basis (str): 'X', 'Y', or 'Z'.
+            p01 (float): Probability of misreading '0' as '1'.
+            p10 (float): Probability of misreading '1' as '0'.
+
+        Returns:
+            np.ndarray: Noisy measurement outcomes for '0' and '1'.
+            dict: Ideal measurement probabilities.
+        """
+        return DM_measurement_shots_noisy(
+            self.rho,
+            shots,
+            basis=basis,
+            p01=p01,
+            p10=p10
+        )
+    
+    def clean(self, tol=1e-10):
+        """
+        Set any entries with real or imaginary part < tol to 0.
+        """
+        real = np.where(np.abs(self.rho.real) < tol, 0, self.rho.real)
+        imag = np.where(np.abs(self.rho.imag) < tol, 0, self.rho.imag)
+        self.rho = real + 1j*imag

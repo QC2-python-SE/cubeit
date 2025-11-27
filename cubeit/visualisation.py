@@ -236,3 +236,160 @@ def plot_bloch_sphere(system: QuantumRegister):
 
     plt.tight_layout()
     plt.show()
+
+def plot_circuit(system: QuantumRegister):
+    """
+    Plot a simple circuit diagram based on `system.history`.
+
+    History format (as implemented in `register.py`):
+      - single-qubit gates: [qubit_index, 'gate_name']
+      - two-qubit gates: [qubit1_index, qubit2_index, 'gate_name']
+
+    This draws horizontal wires for each qubit and places gates sequentially
+    from left to right.
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle, Circle, FancyBboxPatch
+
+    history = getattr(system, 'history', None)
+    if history is None:
+        raise ValueError('System has no history attribute')
+
+    n = system.num_qubits
+    if n < 1:
+        raise ValueError('Number of qubits must be >= 1')
+
+    # Layout params (tweaked for aesthetics)
+    spacing_x = 1.4
+    gate_w = 0.64
+    gate_h = 0.5
+    left_margin = 0.8
+    top_margin = 0.6
+
+    fig_width = max(6, left_margin + len(history) * spacing_x + 1.0)
+    fig_height = max(1.6 + n * 0.9, 2.4)
+
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    # y positions: qubit 0 at top (y = 0), qubit n-1 at bottom
+    ys = [-(i) for i in range(n)]
+
+    # Draw wires (low z-order so gates appear above them)
+    wire_xstart = left_margin - 0.1
+    wire_xend = left_margin + len(history) * spacing_x + 0.6
+    for i, y in enumerate(ys):
+        ax.hlines(y, wire_xstart, wire_xend, color='k', linewidth=1, zorder=0)
+        # show initial |0> ket at the start of each wire
+        ax.text(left_margin - 0.35, y, '|0⟩', fontsize=12, ha='right', va='center', zorder=3)
+
+    # Choose colors from the same coolwarm colormap used by the Bloch sphere
+    cmap = plt.cm.coolwarm
+    single_color = cmap(0.2)
+    two_color = cmap(0.8)
+    neutral_color = cmap(0.5)
+
+    # Draw gates along x axis
+    for idx, item in enumerate(history):
+        x = left_margin + idx * spacing_x + 0.5
+
+        # single-qubit gate [qubit, 'name']
+        if isinstance(item, list) and len(item) == 2:
+            qubit, name = item
+            if qubit < 0 or qubit >= n:
+                continue
+            y = ys[qubit]
+            # rounded box for gate (drawn above wires)
+            box = FancyBboxPatch((x - gate_w/2, y - gate_h/2), gate_w, gate_h,
+                                 boxstyle="round,pad=0.02,rounding_size=0.08",
+                                 linewidth=1, edgecolor='#222222', facecolor=single_color, zorder=5)
+            ax.add_patch(box)
+            ax.text(x, y, str(name).upper(), fontsize=10, ha='center', va='center', zorder=6, color='#111111', weight='semibold')
+
+        # two-qubit gate [q1, q2, 'name']
+        elif isinstance(item, list) and len(item) == 3:
+            q1, q2, name = item
+            # determine control and target y positions
+            if q1 < 0 or q1 >= n or q2 < 0 or q2 >= n:
+                continue
+            y1 = ys[q1]
+            y2 = ys[q2]
+            # vertical line connecting (drawn behind gate symbols)
+            ax.vlines(x, min(y1, y2), max(y1, y2), color='k', linewidth=1, zorder=1)
+
+            # determine control/target y positions
+            control_y = y1
+            target_y = y2
+            gate_name = str(name).lower()
+
+            # For SWAP: draw X symbols on both wires and do not draw a control dot
+            if gate_name == 'swap':
+                ax.text(x, y1, 'X', fontsize=16, ha='center', va='center', zorder=6, color='#111111')
+                ax.text(x, y2, 'X', fontsize=16, ha='center', va='center', zorder=6, color='#111111')
+                # midpoint connector for visual continuity
+                mid = (y1 + y2) / 2
+                ax.add_patch(Circle((x, mid), 0.003, color='#444444', zorder=3))
+            else:
+                # draw control dot for controlled-like gates
+                ax.add_patch(Circle((x, control_y), 0.06, color='k', zorder=5))
+
+                # target depiction depends on gate name
+                if gate_name == 'cnot' or gate_name == 'cx':
+                    # target: circle with plus
+                    circ = Circle((x, target_y), 0.12, fill=False, ec='k', linewidth=1.2, zorder=5)
+                    ax.add_patch(circ)
+                    ax.text(x, target_y, '+', fontsize=10, ha='center', va='center', zorder=6)
+                elif gate_name in ('cz', 'cphase'):
+                    # target: box with Z/P
+                    rect = Rectangle((x - gate_w/2, target_y - gate_h/2), gate_w, gate_h, fill=True, color=two_color, ec='k', zorder=5)
+                    ax.add_patch(rect)
+                    lbl = 'Z' if gate_name == 'cz' else 'P'
+                    ax.text(x, target_y, lbl, fontsize=9, ha='center', va='center', zorder=6)
+                else:
+                    # generic two-qubit box at midpoint
+                    mid = (target_y + control_y) / 2
+                    rect = Rectangle((x - gate_w/2, mid - gate_h/2), gate_w, gate_h, fill=True, color=neutral_color, ec='k', zorder=5)
+                    ax.add_patch(rect)
+                    ax.text(x, mid, str(name).upper(), fontsize=9, ha='center', va='center', zorder=6)
+
+        else:
+            # unknown history entry, just print it as text at this x
+            try:
+                txt = str(item).upper()
+            except Exception:
+                txt = str(item)
+            ax.text(x, 0, txt, fontsize=8, ha='center', va='center', zorder=6)
+
+    # Legend for non-experts (placed to the right)
+    try:
+        from matplotlib.lines import Line2D
+        legend_elements = [
+            FancyBboxPatch((0,0),1,1, boxstyle="round,pad=0.02,rounding_size=0.08", facecolor=single_color, edgecolor='#222222'),
+            Circle((0,0), 0.06, color='#111111'),
+            Line2D([0],[0], color='#222222', lw=1),
+            Circle((0,0), 0.12, fill=False, ec='#111111', linewidth=1.2),
+            Line2D([0],[0], marker='x', color='w', markeredgecolor='#111111', markersize=10, linestyle=''),
+            Rectangle((0,0),1,1, facecolor=two_color, edgecolor='#222222')
+        ]
+        legend_labels = [
+            'Single-qubit gate',
+            'Control dot (control qubit)',
+            'Wire (timeline)',
+            'Target (CNOT)',
+            'SWAP (X on both wires)',
+            'Controlled-phase / Z box'
+        ]
+        ax.legend(legend_elements, legend_labels, loc='upper left', bbox_to_anchor=(1.02, 1.0), frameon=False)
+    except Exception:
+        pass
+
+    # Cosmetic
+    ax.set_ylim(min(ys) - 0.8, max(ys) + 0.8)
+    ax.set_xlim(0, left_margin + len(history) * spacing_x + 0.4)
+    # Keep equal aspect so circles appear circular (not squashed)
+    try:
+        ax.set_aspect('equal', adjustable='box')
+    except Exception:
+        pass
+    ax.axis('off')
+    plt.tight_layout()
+    plt.show()

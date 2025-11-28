@@ -172,6 +172,7 @@ class DensityMatrix2Qubit:
 
     def __init__(self, rho: np.ndarray):
         self.rho = rho
+        self.gates = [] # Store gates applied for reference
 
     def __repr__(self):
         return f"DensityMatrix2Qubit(\n{self.rho}\n)"
@@ -186,7 +187,8 @@ class DensityMatrix2Qubit:
         Args:
             gate (np.ndarray): 2x2 unitary matrix representing the gate.
         """
-        # First try this way that sequentially applies gates to the density matrix.
+        
+        self.gates.append({"gate": gate, "target": target}) # Store gates applied for reference
 
         if target == 0:
             two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
@@ -199,50 +201,22 @@ class DensityMatrix2Qubit:
 
     def apply_sequence(self, gates: list, targets: list):
         """
-        Apply a sequence of single-qubit gates to the density matrix by sequentially applying each gate.
+        Apply a sequence of gates to the density matrix by sequentially applying each gate.
 
         Args:
             gates (list): List of 2x2 unitary matrices representing the gates.
             targets (list): List of target qubit indices for each gate.
         """
 
+        self.gates.append({"gate": gate, "target": target})
+
         for gate, target in zip(gates, targets):
             if gate.shape[0] == 2: # Checking it is a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
+            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which
                 self.rho = gate @ self.rho @ gate.conj().T # Update density matrix with gate application
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
-
-    def apply_sequence2(self, gates: list, targets: list):
-        """
-        Apply a sequence of gates to a density matrix by multiplying the gates together first.
-
-        Args:
-            gates (np.ndarray): Array of 2x2 unitary matrices representing the gates.
-            targets (list): List of target qubit indices for each gate.
-        """
-        
-        dim = self.rho.shape[0]
-
-        total_gate = np.eye(dim, dtype=complex) # Initialize total gate as identity for 2 qubits
-
-        for gate, target in zip(gates, targets):
-            if gate.shape[0] == 2: # Checking it is a single-qubit gate
-                if target == 0:
-                    two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
-                elif target == 1:
-                    two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
-                else:
-                    raise ValueError("Target qubit index must be 0 or 1.")
-            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
-                two_q_gate = gate
-            else:
-                raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
-
-            total_gate = two_q_gate @ total_gate # Multiply gates together
-
-        self.rho = total_gate @ self.rho @ total_gate.conj().T # Update density matrix with total gate application
 
     def partial_trace(self, keep: list):
         """

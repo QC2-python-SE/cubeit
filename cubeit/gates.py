@@ -23,10 +23,12 @@ def h() -> np.ndarray:
     Returns:
         2x2 Hadamard gate matrix
     """
-    return (1/np.sqrt(2)) * np.array([
+    mat = (1/np.sqrt(2)) * np.array([
         [1,  1],
         [1, -1]
     ], dtype=complex)
+    mat.name = "Had"
+    return mat
 
 
 def s() -> np.ndarray:
@@ -39,11 +41,12 @@ def s() -> np.ndarray:
     Returns:
         2x2 Phase gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1, 0],
         [0, 1j]
     ], dtype=complex)
-
+    mat.name = "S"
+    return mat
 
 def t() -> np.ndarray:
     """
@@ -55,10 +58,12 @@ def t() -> np.ndarray:
     Returns:
         2x2 T gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1, 0],
         [0, np.exp(1j * np.pi / 4)]
     ], dtype=complex)
+    mat.name = "T"
+    return mat
 
 
 def cnot() -> np.ndarray:
@@ -76,13 +81,14 @@ def cnot() -> np.ndarray:
     Returns:
         4x4 CNOT gate matrix (control=0, target=1)
     """
-    return np.array([
+    mat = np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 0, 1],
         [0, 0, 1, 0]
     ], dtype=complex)
-
+    mat.name = "CNOT"
+    return mat
 
 def cnot_10() -> np.ndarray:
     """
@@ -91,13 +97,14 @@ def cnot_10() -> np.ndarray:
     Returns:
         4x4 CNOT gate matrix (control=1, target=0)
     """
-    return np.array([
+    mat = np.array([
         [1, 0, 0, 0],
         [0, 0, 0, 1],
         [0, 0, 1, 0],
         [0, 1, 0, 0]
     ], dtype=complex)
-
+    mat.name = "CNOT_10"
+    return mat
 
 # ============================================================================
 # Pauli Gates
@@ -113,11 +120,12 @@ def x() -> np.ndarray:
     Returns:
         2x2 Pauli-X gate matrix
     """
-    return np.array([
+    mat = np.array([
         [0, 1],
         [1, 0]
     ], dtype=complex)
-
+    mat.name = "X"
+    return mat
 
 def y() -> np.ndarray:
     """
@@ -129,11 +137,12 @@ def y() -> np.ndarray:
     Returns:
         2x2 Pauli-Y gate matrix
     """
-    return np.array([
+    mat = np.array([
         [0, -1j],
         [1j, 0]
     ], dtype=complex)
-
+    mat.name = "Y"
+    return mat
 
 def z() -> np.ndarray:
     """
@@ -145,11 +154,12 @@ def z() -> np.ndarray:
     Returns:
         2x2 Pauli-Z gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1,  0],
         [0, -1]
     ], dtype=complex)
-
+    mat.name = "Z"
+    return mat
 
 # ============================================================================
 # Parameterized Gates
@@ -168,10 +178,12 @@ def phase(phi: float) -> np.ndarray:
     Returns:
         2x2 Phase gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1, 0],
         [0, np.exp(1j * phi)]
     ], dtype=complex)
+    mat.name = f"Phase({phi:.2f})"
+    return mat
 
 
 def rotation_x(theta: float) -> np.ndarray:
@@ -189,11 +201,12 @@ def rotation_x(theta: float) -> np.ndarray:
     """
     c = np.cos(theta / 2)
     s = np.sin(theta / 2)
-    return np.array([
+    mat = np.array([
         [c, -1j * s],
         [-1j * s, c]
     ], dtype=complex)
-
+    mat.name = f"Rx({theta:.2f})"
+    return mat
 
 def rotation_y(theta: float) -> np.ndarray:
     """
@@ -210,11 +223,12 @@ def rotation_y(theta: float) -> np.ndarray:
     """
     c = np.cos(theta / 2)
     s = np.sin(theta / 2)
-    return np.array([
+    mat = np.array([
         [c, -s],
         [s, c]
     ], dtype=complex)
-
+    mat.name = f"Ry({theta:.2f})"
+    return mat
 
 def rotation_z(theta: float) -> np.ndarray:
     """
@@ -229,11 +243,12 @@ def rotation_z(theta: float) -> np.ndarray:
     Returns:
         2x2 Rotation-Z gate matrix
     """
-    return np.array([
+    mat = np.array([
         [np.exp(-1j * theta / 2), 0],
         [0, np.exp(1j * theta / 2)]
     ], dtype=complex)
-
+    mat.name = f"Rz({theta:.2f})"
+    return mat
 
 # ============================================================================
 # Additional Two-Qubit Gates
@@ -251,13 +266,14 @@ def swap() -> np.ndarray:
     Returns:
         4x4 SWAP gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1, 0, 0, 0],
         [0, 0, 1, 0],
         [0, 1, 0, 0],
         [0, 0, 0, 1]
     ], dtype=complex)
-
+    mat.name = "SWAP"
+    return mat
 
 def cz() -> np.ndarray:
     """
@@ -271,13 +287,14 @@ def cz() -> np.ndarray:
     Returns:
         4x4 Controlled-Z gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1, 0, 0,  0],
         [0, 1, 0,  0],
         [0, 0, 1,  0],
         [0, 0, 0, -1]
     ], dtype=complex)
-
+    mat.name = "CZ"
+    return mat
 
 def cphase(phi: float) -> np.ndarray:
     """
@@ -294,10 +311,11 @@ def cphase(phi: float) -> np.ndarray:
     Returns:
         4x4 Controlled-Phase gate matrix
     """
-    return np.array([
+    mat = np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
         [0, 0, 0, np.exp(1j * phi)]
     ], dtype=complex)
-
+    mat.name = f"CPHASE({phi:.2f})"
+    return mat

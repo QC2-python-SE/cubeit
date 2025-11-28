@@ -27,8 +27,8 @@ def h() -> np.ndarray:
         [1,  1],
         [1, -1]
     ], dtype=complex)
-    mat.name = "Had"
-    return mat
+    name = "Had"
+    return mat, name
 
 
 def s() -> np.ndarray:
@@ -45,8 +45,8 @@ def s() -> np.ndarray:
         [1, 0],
         [0, 1j]
     ], dtype=complex)
-    mat.name = "S"
-    return mat
+    name = "S"
+    return mat, name
 
 def t() -> np.ndarray:
     """
@@ -62,9 +62,8 @@ def t() -> np.ndarray:
         [1, 0],
         [0, np.exp(1j * np.pi / 4)]
     ], dtype=complex)
-    mat.name = "T"
-    return mat
-
+    name = "T"
+    return mat, name
 
 def cnot() -> np.ndarray:
     """
@@ -87,8 +86,8 @@ def cnot() -> np.ndarray:
         [0, 0, 0, 1],
         [0, 0, 1, 0]
     ], dtype=complex)
-    mat.name = "CNOT"
-    return mat
+    name = "CNOT"
+    return mat, name
 
 def cnot_10() -> np.ndarray:
     """
@@ -103,8 +102,8 @@ def cnot_10() -> np.ndarray:
         [0, 0, 1, 0],
         [0, 1, 0, 0]
     ], dtype=complex)
-    mat.name = "CNOT_10"
-    return mat
+    name = "CNOT_10"
+    return mat, name
 
 # ============================================================================
 # Pauli Gates
@@ -124,8 +123,8 @@ def x() -> np.ndarray:
         [0, 1],
         [1, 0]
     ], dtype=complex)
-    mat.name = "X"
-    return mat
+    name = "X"
+    return mat, name
 
 def y() -> np.ndarray:
     """
@@ -141,8 +140,8 @@ def y() -> np.ndarray:
         [0, -1j],
         [1j, 0]
     ], dtype=complex)
-    mat.name = "Y"
-    return mat
+    name = "Y"
+    return mat, name
 
 def z() -> np.ndarray:
     """
@@ -158,8 +157,8 @@ def z() -> np.ndarray:
         [1,  0],
         [0, -1]
     ], dtype=complex)
-    mat.name = "Z"
-    return mat
+    name = "Z"
+    return mat, name
 
 # ============================================================================
 # Parameterized Gates
@@ -182,8 +181,8 @@ def phase(phi: float) -> np.ndarray:
         [1, 0],
         [0, np.exp(1j * phi)]
     ], dtype=complex)
-    mat.name = f"Phase({phi:.2f})"
-    return mat
+    name = f"Phase({phi:.2f})"
+    return mat, name
 
 
 def rotation_x(theta: float) -> np.ndarray:
@@ -205,8 +204,8 @@ def rotation_x(theta: float) -> np.ndarray:
         [c, -1j * s],
         [-1j * s, c]
     ], dtype=complex)
-    mat.name = f"Rx({theta:.2f})"
-    return mat
+    name = f"Rx({theta:.2f})"
+    return mat, name
 
 def rotation_y(theta: float) -> np.ndarray:
     """
@@ -227,8 +226,8 @@ def rotation_y(theta: float) -> np.ndarray:
         [c, -s],
         [s, c]
     ], dtype=complex)
-    mat.name = f"Ry({theta:.2f})"
-    return mat
+    name = f"Ry({theta:.2f})"
+    return mat, name
 
 def rotation_z(theta: float) -> np.ndarray:
     """
@@ -247,8 +246,8 @@ def rotation_z(theta: float) -> np.ndarray:
         [np.exp(-1j * theta / 2), 0],
         [0, np.exp(1j * theta / 2)]
     ], dtype=complex)
-    mat.name = f"Rz({theta:.2f})"
-    return mat
+    name = f"Rz({theta:.2f})"
+    return mat, name
 
 # ============================================================================
 # Additional Two-Qubit Gates
@@ -272,8 +271,8 @@ def swap() -> np.ndarray:
         [0, 1, 0, 0],
         [0, 0, 0, 1]
     ], dtype=complex)
-    mat.name = "SWAP"
-    return mat
+    name = "SWAP"
+    return mat, name
 
 def cz() -> np.ndarray:
     """
@@ -293,8 +292,8 @@ def cz() -> np.ndarray:
         [0, 0, 1,  0],
         [0, 0, 0, -1]
     ], dtype=complex)
-    mat.name = "CZ"
-    return mat
+    name = "CZ"
+    return mat, name
 
 def cphase(phi: float) -> np.ndarray:
     """
@@ -317,5 +316,5 @@ def cphase(phi: float) -> np.ndarray:
         [0, 0, 1, 0],
         [0, 0, 0, np.exp(1j * phi)]
     ], dtype=complex)
-    mat.name = f"CPHASE({phi:.2f})"
-    return mat
+    name = f"CPHASE({phi:.2f})"
+    return mat, name

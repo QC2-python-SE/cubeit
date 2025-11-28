@@ -5,6 +5,7 @@ Module for handling density matrices (DMs) in the cubeit package.
 import numpy as np
 from cubeit.noise import *
 from itertools import product
+from cubeit.gates import swap
 
 def create_density_matrix(state_vector):
     """
@@ -165,13 +166,123 @@ def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='
 
     return results, probs
 
-class DensityMatrix2Qubit:
+class DensityMatrix1Qubit:
     """
-    Class representing a density matrix and providing methods for measurement.
+    Class representing a density matrix for one qubit and providing methods for measurement.
     """
 
     def __init__(self, rho: np.ndarray):
         self.rho = rho
+        self.history = [] # Store gates applied for reference
+
+    def __repr__(self):
+        return f"DensityMatrix1Qubit(\n{self.rho}\n)"
+
+    def __str__(self):
+        return self.__repr__()
+    
+    def apply_gate(self, gate: tuple, target: int):
+        """
+        Apply a single-qubit gate to the density matrix.
+
+        Args:
+            gate (tuple): A tuple containing the 2x2 unitary matrix and its name.
+            target (int): The target qubit index (0 or 1).
+        """
+        mat, name = gate
+        self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+        self.history.append({"gate": name, "target": target}) # Store gate applied for reference
+
+    def apply_sequence(self, gates: list, targets: list):
+        """
+        Apply a sequence of gates to the density matrix by sequentially applying each gate.
+
+        Args:
+            gates (list): List of matrices representing the gates, along with their names.
+            targets (list): List of target qubit indices for each gate.
+        """
+
+        for gate, target in zip(gates, targets):
+            mat, name = gate
+            if mat.shape[0] == mat.shape[1] == 2: # Checking it is square and a single-qubit gate
+                self.apply_gate(gate, target)
+            else:
+                raise ValueError("Gate must be a single-qubit (2x2) unitary matrix.")
+            
+    def apply_sequence_noise(self, gates: list, targets: list, noise_channels: dict):
+        """
+        Apply a sequence of gates to a density matrix with noise channels after each individual gate.
+
+        Args:
+            gates (list): List of gate functions which each return their matrix and name.
+            targets (list): List of target qubit indices for each gate.
+            noise_channels (dict): List of noise channels to apply after each gate with corresponding probabilities.
+        """
+
+        allowed = {'depolarising', 'dephasing', 'amplitude damping', 'bit flip'} # Define the allowed noise channels
+
+        invalid = set(noise_channels) - allowed # Find the invalid keys
+
+        if invalid:
+            raise ValueError(f"Invalid noise channels: {invalid}. \n Allowed channels are: {allowed}.")
+
+        for gate, target in zip(gates, targets):
+            mat, name = gate
+            if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
+                self.apply_gate(gate, target)
+            else:
+                raise ValueError("Gate must be a single-qubit (2x2) unitary matrix.")
+
+            # Apply noise channel after each gate
+            if 'depolarising' in noise_channels:
+                self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
+            elif 'dephasing' in noise_channels:
+                self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
+            elif 'amplitude_damping' in noise_channels:
+                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
+            elif 'bit flip' in noise_channels:
+                self.rho = bit_flip_noise(self.rho, p=noise_channels)
+            
+    def measure_ideal(self, basis: str ='Z'):
+        """
+        Return ideal measurement probabilities for this density matrix.
+        
+        Args:
+            basis (str): 'X', 'Y', or 'Z'.
+
+        Returns:
+            dict: Ideal measurement probabilities.
+        """
+        return DM_measurement_ideal(self.rho, basis)
+    
+    def measure_shots(self, shots: list, basis: str ='Z', pdict: dict = {'p01': 0.02, 'p10': 0.05}):
+        """
+        Method to simulate noisy measurement of the density matrix.
+
+        Args:
+            shots (list or array): Number of measurement shots.
+            basis (str): 'X', 'Y', or 'Z'.
+            pdict (dict): Dictionary containing readout error probabilities:
+
+        Returns:
+            np.ndarray: Noisy measurement outcomes for '0' and '1'.
+            dict: Ideal measurement probabilities.
+        """
+        return DM_measurement_shots_noise(
+            self.rho,
+            shots,
+            basis=basis,
+            p_flip=pdict
+        )
+
+class DensityMatrix2Qubit:
+    """
+    Class representing a density matrix for two qubits and providing methods for measurement.
+    """
+
+    def __init__(self, rho: np.ndarray):
+        self.rho = rho
+        self.history = [] # Store gates applied for reference
 
     def __repr__(self):
         return f"DensityMatrix2Qubit(\n{self.rho}\n)"
@@ -179,70 +290,50 @@ class DensityMatrix2Qubit:
     def __str__(self):
         return self.__repr__()
 
-    def apply_single_qubit_gate(self, gate: np.ndarray, target: int):
+    def apply_single_qubit_gate(self, gate: tuple, target: int):
         """
         Apply a single-qubit gate to the density matrix.
 
         Args:
-            gate (np.ndarray): 2x2 unitary matrix representing the gate.
+            gate (tuple): A tuple containing the 2x2 unitary matrix of a gate and its name.
+            target (int): The target qubit index (0 or 1).
         """
-        # First try this way that sequentially applies gates to the density matrix.
-
+        mat, name = gate
+        
         if target == 0:
-            two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
+            two_q_gate = np.kron(mat, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
         elif target == 1:
-            two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
+            two_q_gate = np.kron(np.eye(2,dtype=complex), mat) # Expand gate to act on second qubit
         else:
             raise ValueError("Target qubit index must be 0 or 1.")
+        
+        self.history.append({"gate": name, "target": target}) # Store gate applied for reference
 
         self.rho = two_q_gate @ self.rho @ two_q_gate.conj().T # Update density matrix with gate application
 
     def apply_sequence(self, gates: list, targets: list):
         """
-        Apply a sequence of single-qubit gates to the density matrix by sequentially applying each gate.
+        Apply a sequence of gates to the density matrix by sequentially applying each gate.
 
         Args:
-            gates (list): List of 2x2 unitary matrices representing the gates.
+            gates (list): List of matrices representing the gates, along with their names.
             targets (list): List of target qubit indices for each gate.
         """
 
         for gate, target in zip(gates, targets):
-            if gate.shape[0] == 2: # Checking it is a single-qubit gate
+            mat, name = gate
+            if mat.shape[0] == mat.shape[1] == 2: # Checking it is square and a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
-                self.rho = gate @ self.rho @ gate.conj().T # Update density matrix with gate application
+            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which qubit is target/control
+                SWAP, _ = swap() # Get SWAP gate matrix
+                if target == [0,1]: # For control on qubit 0, target on qubit 1
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                elif target == [1,0]: # For control on qubit 1, target on qubit 0
+                    mat = SWAP @ mat @ SWAP # Switch gate into a form where control is on qubit 1, target on qubit 0
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                self.history.append({"gate": name, "target": target}) # Add the gate to history
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
-
-    def apply_sequence2(self, gates: list, targets: list):
-        """
-        Apply a sequence of gates to a density matrix by multiplying the gates together first.
-
-        Args:
-            gates (np.ndarray): Array of 2x2 unitary matrices representing the gates.
-            targets (list): List of target qubit indices for each gate.
-        """
-        
-        dim = self.rho.shape[0]
-
-        total_gate = np.eye(dim, dtype=complex) # Initialize total gate as identity for 2 qubits
-
-        for gate, target in zip(gates, targets):
-            if gate.shape[0] == 2: # Checking it is a single-qubit gate
-                if target == 0:
-                    two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
-                elif target == 1:
-                    two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
-                else:
-                    raise ValueError("Target qubit index must be 0 or 1.")
-            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
-                two_q_gate = gate
-            else:
-                raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
-
-            total_gate = two_q_gate @ total_gate # Multiply gates together
-
-        self.rho = total_gate @ self.rho @ total_gate.conj().T # Update density matrix with total gate application
 
     def partial_trace(self, keep: list):
         """
@@ -268,7 +359,7 @@ class DensityMatrix2Qubit:
         Apply a sequence of gates to a density matrix with noise channels after each individual gate.
 
         Args:
-            gates (list): List of 2x2 unitary matrices representing the gates.
+            gates (list): List of gate functions which each return their matrix and name.
             targets (list): List of target qubit indices for each gate.
             noise_channels (dict): List of noise channels to apply after each gate with corresponding probabilities.
         """
@@ -281,10 +372,12 @@ class DensityMatrix2Qubit:
             raise ValueError(f"Invalid noise channels: {invalid}. \n Allowed channels are: {allowed}.")
 
         for gate, target in zip(gates, targets):
-            if gate.shape[0] == 2: # Checking it is a single-qubit gate
+            mat, name = gate
+            if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif gate.shape[0] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
-                self.rho = gate @ self.rho @ gate.conj().T # Update density matrix with gate application
+            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
+                self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                self.history.append({"gate": name, "target": target}) # Add the gate to history
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
 
@@ -319,7 +412,7 @@ class DensityMatrix2Qubit:
             shots (list or array): Number of measurement shots.
             basis (str): 'X', 'Y', or 'Z'.
             pdict (dict): Dictionary containing readout error probabilities:
-            
+
         Returns:
             np.ndarray: Noisy measurement outcomes for '0' and '1'.
             dict: Ideal measurement probabilities.

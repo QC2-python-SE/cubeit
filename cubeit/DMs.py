@@ -172,7 +172,7 @@ class DensityMatrix2Qubit:
 
     def __init__(self, rho: np.ndarray):
         self.rho = rho
-        self.gates = [] # Store gates applied for reference
+        self.history = [] # Store gates applied for reference
 
     def __repr__(self):
         return f"DensityMatrix2Qubit(\n{self.rho}\n)"
@@ -188,14 +188,14 @@ class DensityMatrix2Qubit:
             gate (np.ndarray): 2x2 unitary matrix representing the gate.
         """
         
-        self.gates.append({"gate": gate, "target": target}) # Store gates applied for reference
-
         if target == 0:
             two_q_gate = np.kron(gate, np.eye(2,dtype=complex)) # Expand gate to act on first qubit
         elif target == 1:
             two_q_gate = np.kron(np.eye(2,dtype=complex), gate) # Expand gate to act on second qubit
         else:
             raise ValueError("Target qubit index must be 0 or 1.")
+        
+        self.history.append({"gate": gate.name, "target": target}) # Store gate applied for reference
 
         self.rho = two_q_gate @ self.rho @ two_q_gate.conj().T # Update density matrix with gate application
 
@@ -208,7 +208,6 @@ class DensityMatrix2Qubit:
             targets (list): List of target qubit indices for each gate.
         """
 
-        self.gates.append({"gate": gate, "target": target})
 
         for gate, target in zip(gates, targets):
             if gate.shape[0] == 2: # Checking it is a single-qubit gate
@@ -217,6 +216,7 @@ class DensityMatrix2Qubit:
                 self.rho = gate @ self.rho @ gate.conj().T # Update density matrix with gate application
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
+            self.history.append({"gate": gate.name, "target": target}) # Add the gate to history
 
     def partial_trace(self, keep: list):
         """
@@ -293,7 +293,7 @@ class DensityMatrix2Qubit:
             shots (list or array): Number of measurement shots.
             basis (str): 'X', 'Y', or 'Z'.
             pdict (dict): Dictionary containing readout error probabilities:
-            
+
         Returns:
             np.ndarray: Noisy measurement outcomes for '0' and '1'.
             dict: Ideal measurement probabilities.

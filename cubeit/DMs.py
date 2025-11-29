@@ -5,7 +5,7 @@ Module for handling density matrices (DMs) in the cubeit package.
 import numpy as np
 from cubeit.noise import *
 from itertools import product
-from cubeit.gates import swap
+from cubeit.gates_DMs import swap
 
 def create_density_matrix(state_vector):
     """

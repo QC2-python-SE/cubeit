@@ -6,6 +6,11 @@ import numpy as np
 from typing import List, Tuple
 from .register import _QuantumRegister as QuantumRegister, QuantumState
 
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Circle, FancyBboxPatch
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.lines import Line2D
+
 
 def print_state(system: QuantumRegister):
     """Print the current quantum state in a readable format."""
@@ -145,8 +150,6 @@ def plot_bloch_sphere(system: QuantumRegister):
     Args:
         system: QuantumRegister containing the qubits to visualize
     """
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
 
     rhos = state_to_reduced_density_matrix(system)
     state_vectors = []
@@ -154,11 +157,10 @@ def plot_bloch_sphere(system: QuantumRegister):
         state_vectors.append(bloch_from_density(rho))
 
     num_qubits = system.num_qubits
-    fig = plt.figure(figsize=(5 * num_qubits, 5))
+    fig = plt.figure(figsize=(5 * num_qubits, 2.9))
 
     for i in range(num_qubits):
         ax = fig.add_subplot(1, num_qubits, i + 1, projection='3d')
-        ax.set_title(f'Qubit {i+1}', fontsize=12, fontweight='semibold', pad=10)
         x,y,z = state_vectors[i]
 
         # Draw a softly shaded Bloch sphere
@@ -221,8 +223,8 @@ def plot_bloch_sphere(system: QuantumRegister):
         except Exception:
             pass
 
-        # title and viewing angle for consistent, pleasing perspective
-        ax.set_title(f'Qubit {i}', fontsize=12, fontweight='semibold', pad=10)
+        # title and viewing angle for consistent perspective
+        ax.set_title(f'Qubit {i}', fontsize=12, fontweight='semibold', pad=0)
         ax.view_init(elev=20, azim=30)
 
         # Add labels for |0> at the north pole (z=1) and |1> at the south pole (z=-1)
@@ -248,8 +250,7 @@ def plot_circuit(system: QuantumRegister):
     This draws horizontal wires for each qubit and places gates sequentially
     from left to right.
     """
-    import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle, Circle, FancyBboxPatch
+
 
     history = getattr(system, 'history', None)
     if history is None:
@@ -264,7 +265,7 @@ def plot_circuit(system: QuantumRegister):
     gate_w = 0.64
     gate_h = 0.5
     left_margin = 0.8
-    top_margin = 0.6
+    top_margin = 0.2
 
     fig_width = max(6, left_margin + len(history) * spacing_x + 1.0)
     fig_height = max(1.6 + n * 0.9, 2.4)
@@ -361,7 +362,6 @@ def plot_circuit(system: QuantumRegister):
 
     # Legend for non-experts (placed to the right)
     try:
-        from matplotlib.lines import Line2D
         legend_elements = [
             FancyBboxPatch((0,0),1,1, boxstyle="round,pad=0.02,rounding_size=0.08", facecolor=single_color, edgecolor='#222222'),
             Circle((0,0), 0.06, color='#111111'),

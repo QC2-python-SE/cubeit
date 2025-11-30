@@ -169,6 +169,7 @@ class _QuantumRegister:
             qubit: Which qubit to apply gate to (0 to num_qubits-1)
         """
         if gate_matrix.shape != (2, 2):
+            print(gate_matrix)
             raise ValueError("Single-qubit gate matrix must be 2x2")
         
         if qubit < 0 or qubit >= self.num_qubits:

@@ -1,0 +1,56 @@
+name: Build and Deploy Sphinx Docs
+
+on:
+  push:
+    branches:
+      - gh-pages
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install sphinx sphinx-rtd-theme  # or whatever theme you use
+
+      - name: Build docs
+        working-directory: docs
+        run: |
+          make html
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-docs
+          path: docs/_build/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: html-docs
+          path: html
+
+      - name: Deploy to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: html
+
+      - name: Publish
+        uses: actions/deploy-pages@v4

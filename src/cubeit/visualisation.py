@@ -3,15 +3,12 @@ Visualization and utility functions for quantum states and circuits.
 """
 
 import numpy as np
-from typing import List, Tuple
 from .register import _QuantumRegister as QuantumRegister, QuantumState
 from .DMs import DensityMatrix2Qubit as DM
-
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Circle, FancyBboxPatch
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.lines import Line2D
-from .DMs import DensityMatrix2Qubit as DM
 
 
 def print_state(system: QuantumRegister):
@@ -87,9 +84,6 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
     """
     return system1.get_state().fidelity(system2.get_state())
 
-# write function take cubeit QuantumRegister and plot the bloch sphere representation of each qubit in the register
-# write von neumann entropy function to show entanglement
-# do some tests
 
 def partial_trace(rho, keep, dims):
     """
@@ -159,8 +153,6 @@ def plot_bloch_sphere(system):
     Args:
         system: QuantumRegister or Density Matrix containing the qubits to visualize
     """
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
 
     if isinstance(system, QuantumRegister):
         rhos = state_to_reduced_density_matrix(system)
@@ -273,13 +265,24 @@ def plot_circuit(system: QuantumRegister):
     This draws horizontal wires for each qubit and places gates sequentially
     from left to right.
     """
-
-
-    history = getattr(system, 'history', None)
-    if history is None:
-        raise ValueError('System has no history attribute')
-
-    n = system.num_qubits
+    if isinstance(system, QuantumRegister):
+        history = getattr(system, 'history', None)
+        n = system.num_qubits
+        if history is None:
+            raise ValueError('System has no history attribute')
+    elif isinstance(system, DM):
+        DM_history = getattr(system, 'history', None)
+        n = 2
+        history = []
+        for item in DM_history:
+            name = item["gate"]
+            qubit = item["target"]
+            if isinstance(qubit, list) and len(qubit) == 2:
+                history.append([qubit[0], qubit[1], name])
+            else:
+                history.append([qubit, name])
+        if history is None:
+            raise ValueError('System has no history attribute')
     if n < 1:
         raise ValueError('Number of qubits must be >= 1')
 

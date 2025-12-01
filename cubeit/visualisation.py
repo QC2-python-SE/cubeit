@@ -236,8 +236,9 @@ def plot_bloch_sphere(system: QuantumRegister):
             # Some matplotlib/MPL backends may raise for 3D text; ignore failures
             pass
 
-    plt.tight_layout()
+    fig.tight_layout()
     plt.show()
+    return fig
 
 def plot_circuit(system: QuantumRegister):
     """
@@ -391,5 +392,6 @@ def plot_circuit(system: QuantumRegister):
     except Exception:
         pass
     ax.axis('off')
-    plt.tight_layout()
+    fig.tight_layout()
     plt.show()
+    return fig

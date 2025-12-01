@@ -66,15 +66,17 @@ def run_gates(gate_string):
             print(f"Applied {name} on qubit {qubits}.")
 
 def plot_measure(state, shots=1000):
-    plt.figure(figsize=(3, 5))
+    fig, ax = plt.subplots(figsize=(3, 5))
     basis_states = {'|00>': 0, '|01>': 0, '|10>': 0, '|11>': 0}
     meast = simulate_measurements(state, num_samples=int(shots))
     for k in basis_states:
         k_ = k.replace('|', '').replace('>', '')
         if k_ in meast:
             basis_states[k] = float(meast[k_])/float(shots)
-    plt.bar(list(basis_states.keys()), list(basis_states.values()), 0.25)
-    plt.title(f'Measurement over {shots} shots')
-    plt.ylabel('Probability')
+    ax.bar(list(basis_states.keys()), list(basis_states.values()), 0.25)
+    ax.set_title(f'Measurement over {shots} shots')
+    ax.set_ylabel('Probability')
     plt.show()
+    return fig
+
 

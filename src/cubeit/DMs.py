@@ -324,20 +324,14 @@ class DensityMatrix2Qubit:
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is square and a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif mat.shape[0] == 4:  # two-qubit gate
-                P = reorder_2qubit()  # NOT the SWAP gate
-
-                if target == [0,1]:
-                    # Gate already matches your ordering
-                    U = mat
-                
-                elif target == [1,0]:
-                    # Convert to reversed order
-                    U = P @ mat @ P.conj().T
-                
-                self.rho = U @ self.rho @ U.conj().T
-                self.history.append({"gate": name, "target": target})
-
+            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which qubit is target/control
+                SWAP, _ = swap() # Get SWAP gate matrix
+                if target == [0,1]: # For control on qubit 0, target on qubit 1
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                elif target == [1,0]: # For control on qubit 1, target on qubit 0
+                    mat = SWAP @ mat @ SWAP # Switch gate into a form where control is on qubit 1, target on qubit 0
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                self.history.append({"gate": name, "target": target}) # Add the gate to history
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
 
@@ -399,8 +393,13 @@ class DensityMatrix2Qubit:
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
-                self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which qubit is target/control
+                SWAP, _ = swap() # Get SWAP gate matrix
+                if target == [0,1]: # For control on qubit 0, target on qubit 1
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                elif target == [1,0]: # For control on qubit 1, target on qubit 0
+                    mat = SWAP @ mat @ SWAP # Switch gate into a form where control is on qubit 1, target on qubit 0
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
                 self.history.append({"gate": name, "target": target}) # Add the gate to history
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")

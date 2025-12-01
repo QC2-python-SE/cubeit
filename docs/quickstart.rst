@@ -20,7 +20,7 @@ Use fluent helper methods to build quantum circuits:
 
 .. code-block:: python
 
-   qr.h(0)          # Hadamard on qubit 0
+   qr.had(0)          # Hadamard on qubit 0
    qr.cnot(0, 1)    # Entangle qubit 0 and 1
    qr.rx(2, 0.5)    # Rotate qubit 2 around X by 0.5 radians
    qr.cz(1, 3)      # Controlled-Z between qubit 1 and 3
@@ -47,12 +47,12 @@ Measure the register – collapses the state and returns a bitstring:
 Gate Helpers
 ------------
 
-Available gate helpers:
+Available gats:
 
 +--------------------------+----------------------------------+
 | Helper                   | Description                      |
 +==========================+==================================+
-| ``qr.h(i)``              | Hadamard on qubit *i*            |
+| ``qr.had(i)``              | Hadamard on qubit *i*            |
 +--------------------------+----------------------------------+
 | ``qr.x(i)``, ``qr.y(i)``,| Pauli gates                      |
 | ``qr.z(i)``              |                                  |
@@ -93,7 +93,7 @@ Measurement & Probabilities
    from cubeit import quantumregister, get_state, measure
    from cubeit.visualization import print_probabilities
 
-   qr = quantumregister(2).h(0).cnot(0, 1)
+   qr = quantumregister(2).had(0).cnot(0, 1)
 
    print_probabilities(qr)
    # Measurement Probabilities:

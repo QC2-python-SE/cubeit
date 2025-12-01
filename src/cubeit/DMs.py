@@ -117,7 +117,7 @@ def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
 
     return results, probs
 
-def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip: dict = None):
+def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip_on = False):
     """
     Simulate measurement of a density matrix with readout noise for n qubits.
 
@@ -134,8 +134,10 @@ def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='
         dict: Ideal measurement probabilities for each outcome.
     """
 
-    if p_flip is None:
-        p_flip = {'p01': 0.02, 'p10': 0.05}
+    if p_flip_on is False:
+        p_flip = {'p01': 0.00, 'p10': 0.00}
+    else:
+        p_flip = {'p01': 0.01, 'p10': 0.02}
 
     # Get ideal probabilities as a dictionary of bitstring outcomes
     probs = DM_measurement_ideal(rho, basis)  # e.g., {'00': 0.5, '01':0, '10':0, '11':0.5}
@@ -272,7 +274,7 @@ class DensityMatrix1Qubit:
             self.rho,
             shots,
             basis=basis,
-            p_flip=pdict
+            p_flip_on=False
         )
 
 class DensityMatrix2Qubit:
@@ -324,7 +326,7 @@ class DensityMatrix2Qubit:
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is square and a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which qubit is target/control
+            elif mat.shape[0] == mat.shape[1] == 4:
                 SWAP, _ = swap() # Get SWAP gate matrix
                 if target == [0,1]: # For control on qubit 0, target on qubit 1
                     self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
@@ -439,7 +441,7 @@ class DensityMatrix2Qubit:
             self.rho,
             shots,
             basis=basis,
-            p_flip=pdict
+            p_flip_on=False
         )
     
     def clean(self, tol: float = 1e-12):

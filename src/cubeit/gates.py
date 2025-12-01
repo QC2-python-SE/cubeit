@@ -13,7 +13,7 @@ from typing import Callable
 # Universal Gate Set
 # ============================================================================
 
-def h() -> np.ndarray:
+def had() -> np.ndarray:
     """
     Hadamard gate - creates superposition.
     

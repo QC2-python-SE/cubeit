@@ -6,7 +6,7 @@ from cubeit import (
     quantumregister,
     get_state,
     measure,
-    h, s, t, x, y, z,
+    had, s, t, x, y, z,
     cnot, cnot_10, swap, cz,
 )
 from cubeit.visualisation import plot_bloch_sphere, plot_circuit, simulate_measurements
@@ -24,8 +24,8 @@ import datetime
 
 #Function to apply gates - replace this with a more complete function from register or DMs etc.
 def apply_gate(state, gate, qubits):
-    if gate == 'H':
-        state.h(qubits)
+    if gate == 'Had':
+        state.had(qubits)
     elif gate == 'S':
         state.s(qubits)
     elif gate == 'T':

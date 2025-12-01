@@ -106,21 +106,21 @@ def create_bell_state(state_type: str = "phi_plus") -> QuantumRegister:
     
     if state_type == "phi_plus":
         # |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
-        system.h(0)
+        system.had(0)
         system.cnot(0, 1)
     elif state_type == "phi_minus":
         # |Φ⁻⟩ = (|00⟩ - |11⟩) / √2
-        system.h(0)
+        system.had(0)
         system.z(0)  # Apply Z before CNOT
         system.cnot(0, 1)
     elif state_type == "psi_plus":
         # |Ψ⁺⟩ = (|01⟩ + |10⟩) / √2
-        system.h(0)
+        system.had(0)
         system.x(1)  # Flip qubit 1
         system.cnot(0, 1)
     elif state_type == "psi_minus":
         # |Ψ⁻⟩ = (|01⟩ - |10⟩) / √2
-        system.h(0)
+        system.had(0)
         system.x(1)  # Flip qubit 1
         system.z(0)  # Apply Z before CNOT
         system.cnot(0, 1)

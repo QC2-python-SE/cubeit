@@ -7,7 +7,7 @@ quantum systems, including a universal gate set for quantum computation.
 
 from .register import QuantumState, _QuantumRegister
 from .gates import (
-    h, s, t, cnot, cnot_10,
+    had, s, t, cnot, cnot_10,
     x, y, z,
     phase, rotation_x, rotation_y, rotation_z,
     swap, cz, cphase
@@ -17,7 +17,7 @@ from typing import Optional
 __version__ = "0.2.0"
 __all__ = [
     "QuantumState",
-    "h", "s", "t", "cnot", "cnot_10",
+    "had", "s", "t", "cnot", "cnot_10",
     "x", "y", "z",
     "phase", "rotation_x", "rotation_y", "rotation_z",
     "swap", "cz", "cphase",

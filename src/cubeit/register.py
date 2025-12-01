@@ -355,13 +355,13 @@ class _QuantumRegister:
 
     def _import_gates(self):
         from .gates import (
-            h, x, y, z,
+            had, x, y, z,
             s, t,
             phase, rotation_x, rotation_y, rotation_z,
             cnot, cz, swap, cphase
         )
         return {
-            "h": h,
+            "had": had,
             "x": x,
             "y": y,
             "z": z,
@@ -377,11 +377,11 @@ class _QuantumRegister:
             "cphase": cphase,
         }
 
-    def h(self, qubit: int) -> "_QuantumRegister":
+    def had(self, qubit: int) -> "_QuantumRegister":
         """Apply a Hadamard gate to ``qubit`` and return ``self``."""
         gates = self._import_gates()
-        self.apply_single_qubit_gate(gates["h"](), qubit)
-        self.history.append([qubit, 'h'])
+        self.apply_single_qubit_gate(gates["had"](), qubit)
+        self.history.append([qubit, 'had'])
         return self
 
     def x(self, qubit: int) -> "_QuantumRegister":

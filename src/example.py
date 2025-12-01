@@ -9,7 +9,7 @@ from cubeit import (
     quantumregister,
     get_state,
     measure,
-    h, s, t, x, y, z,
+    had, s, t, x, y, z,
     cnot, cnot_10, swap, cz,
 )
 from cubeit.visualization import fidelity
@@ -32,21 +32,21 @@ def create_bell_state(state_type: str = "phi_plus") -> quantumregister:
     
     if state_type == "phi_plus":
         # |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
-        system.h(0)
+        system.had(0)
         system.cnot(0, 1)
     elif state_type == "phi_minus":
         # |Φ⁻⟩ = (|00⟩ - |11⟩) / √2
-        system.h(0)
+        system.had(0)
         system.z(0)  # Apply Z before CNOT
         system.cnot(0, 1)
     elif state_type == "psi_plus":
         # |Ψ⁺⟩ = (|01⟩ + |10⟩) / √2
-        system.h(0)
+        system.had(0)
         system.x(1)  # Flip qubit 1
         system.cnot(0, 1)
     elif state_type == "psi_minus":
         # |Ψ⁻⟩ = (|01⟩ - |10⟩) / √2
-        system.h(0)
+        system.had(0)
         system.x(1)  # Flip qubit 1
         system.z(0)  # Apply Z before CNOT
         system.cnot(0, 1)
@@ -120,7 +120,7 @@ class TestUniversalGates:
     def test_hadamard_qubit0(self):
         """Test Hadamard gate on qubit 0."""
         system = quantumregister(2)
-        system.h(0)
+        system.had(0)
         state = system.get_state().state
         expected = np.array([1/np.sqrt(2), 0.0, 1/np.sqrt(2), 0.0], dtype=complex)
         assert np.allclose(state, expected)
@@ -128,7 +128,7 @@ class TestUniversalGates:
     def test_hadamard_qubit1(self):
         """Test Hadamard gate on qubit 1."""
         system = quantumregister(2)
-        system.h(1)
+        system.had(1)
         state = system.get_state().state
         expected = np.array([1/np.sqrt(2), 1/np.sqrt(2), 0.0, 0.0], dtype=complex)
         assert np.allclose(state, expected)
@@ -154,7 +154,7 @@ class TestUniversalGates:
     def test_cnot_creates_bell_state(self):
         """Test that H + CNOT creates Bell state."""
         system = quantumregister(2)
-        system.h(0)
+        system.had(0)
         system.cnot(0, 1)
         state = system.get_state().state
         expected = np.array([1/np.sqrt(2), 0.0, 0.0, 1/np.sqrt(2)], dtype=complex)
@@ -206,7 +206,7 @@ class TestPauliGates:
     def test_pauli_z(self):
         """Test Pauli-Z (phase flip) gate."""
         system = quantumregister(2)
-        system.h(0)  # Create superposition
+        system.had(0)  # Create superposition
         system.z(0)  # Apply phase flip
         state = system.get_state().state
         expected = np.array([1/np.sqrt(2), 0.0, -1/np.sqrt(2), 0.0], dtype=complex)
@@ -246,7 +246,7 @@ class TestParameterizedGates:
     def test_rotation_z(self):
         """Test RotationZ gate."""
         system = quantumregister(2)
-        system.h(0)  # Create superposition (|0⟩ + |1⟩)/√2
+        system.had(0)  # Create superposition (|0⟩ + |1⟩)/√2
         system.rz(0, np.pi)
         state = system.get_state().state
         # Rz(π) on (|0⟩ + |1⟩)/√2 gives (-i|0⟩ + i|1⟩)/√2 = i(|1⟩ - |0⟩)/√2
@@ -274,8 +274,8 @@ class TestTwoQubitGates:
     def test_cz_gate(self):
         """Test Controlled-Z gate."""
         system = quantumregister(2)
-        system.h(0)
-        system.h(1)
+        system.had(0)
+        system.had(1)
         system.cz(0, 1)
         # CZ should add a phase to |11⟩
         probs = system.get_probabilities()
@@ -304,7 +304,7 @@ class TestMeasurements:
     def test_measurement_probabilities(self):
         """Test that probabilities sum to 1."""
         system = quantumregister(2)
-        system.h(0)
+        system.had(0)
         probs = system.get_probabilities()
         assert np.isclose(np.sum(probs), 1.0)
         assert len(probs) == 4
@@ -312,7 +312,7 @@ class TestMeasurements:
     def test_measurement_statistics(self):
         """Test measurement statistics over many samples."""
         system = quantumregister(2)
-        system.h(0)
+        system.had(0)
         system.cnot(0, 1)  # Bell state
         
         # Measure many times
@@ -329,7 +329,7 @@ class TestMeasurements:
     def test_partial_measurement_qubit0(self):
         """Test partial measurement of qubit 0."""
         system = quantumregister(2)
-        system.h(0)
+        system.had(0)
         result = system.measure_qubit(0)
         assert result in [0, 1]
         # After measurement, state should be collapsed
@@ -339,7 +339,7 @@ class TestMeasurements:
     def test_partial_measurement_qubit1(self):
         """Test partial measurement of qubit 1."""
         system = quantumregister(2)
-        system.h(1)
+        system.had(1)
         result = system.measure_qubit(1)
         assert result in [0, 1]
         probs = system.get_probabilities()
@@ -394,9 +394,9 @@ class TestGateCompositions:
     def test_h_x_h(self):
         """Test H X H = Z (up to global phase)."""
         system1 = quantumregister(2)
-        system1.h(0)
+        system1.had(0)
         system1.x(0)
-        system1.h(0)
+        system1.had(0)
         
         system2 = quantumregister(2)
         system2.z(0)
@@ -410,11 +410,11 @@ class TestGateCompositions:
     def test_cnot_self_inverse(self):
         """Test that CNOT is its own inverse."""
         system = quantumregister(2)
-        system.h(0)
+        system.had(0)
         system.cnot(0, 1)
         original_state = system.get_state().state.copy()
         system.cnot(0, 1)  # Apply again
-        system.h(0)
+        system.had(0)
         final_state = system.get_state().state
         assert np.allclose(final_state, [1.0, 0.0, 0.0, 0.0])
     
@@ -440,7 +440,7 @@ class TestUnitarity:
     
     def test_hadamard_unitary(self):
         """Test that Hadamard gate is unitary."""
-        gate = h()
+        gate = had()
         h_dagger = gate.conj().T
         product = gate @ h_dagger
         assert np.allclose(product, np.eye(2))
@@ -454,7 +454,7 @@ class TestUnitarity:
     
     def test_all_single_qubit_gates_unitary(self):
         """Test that all single-qubit gates are unitary."""
-        gates = [h(), s(), t(), x(), y(), z()]
+        gates = [had(), s(), t(), x(), y(), z()]
         for gate in gates:
             gate_dagger = gate.conj().T
             product = gate @ gate_dagger
@@ -476,7 +476,7 @@ class TestErrorHandling:
         """Test that invalid qubit index raises error."""
         system = quantumregister(2)
         with pytest.raises(ValueError):
-            system.h(2)
+            system.had(2)
     
     def test_wrong_gate_size(self):
         """Test that wrong gate size raises error."""
@@ -534,7 +534,7 @@ class TestNQubitRegister:
         assert np.allclose(state.state, [1.0, 0.0])
         
         # Apply Hadamard
-        reg.h(0)
+        reg.had(0)
         state = reg.get_state().state
         expected = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=complex)
         assert np.allclose(state, expected)
@@ -561,8 +561,8 @@ class TestNQubitRegister:
         """Test applying single-qubit gates on n-qubit register."""
         reg = quantumregister(3)
         
-        # Apply H to qubit 0
-        reg.h(0)
+        # Apply Had to qubit 0
+        reg.had(0)
         state = reg.get_state().state
         # Should be (|000⟩ + |100⟩) / √2 (qubit indices are ordered left-to-right)
         expected_indices = [0, 4]  # |000⟩ and |100⟩
@@ -574,7 +574,7 @@ class TestNQubitRegister:
         
         # Apply H to qubit 1
         reg = quantumregister(3)
-        reg.h(1)
+        reg.had(1)
         state = reg.get_state().state
         # Should be (|000⟩ + |010⟩) / √2
         expected_indices = [0, 2]  # |000⟩ and |010⟩
@@ -589,7 +589,7 @@ class TestNQubitRegister:
         reg = quantumregister(3)
         
         # Apply H to qubit 0, then CNOT between qubit 0 and 1
-        reg.h(0)
+        reg.had(0)
         reg.cnot(0, 1)
         state = reg.get_state().state
         
@@ -606,7 +606,7 @@ class TestNQubitRegister:
         reg = quantumregister(4)
         
         # Apply H to qubit 0, then CNOT between qubit 0 and 2
-        reg.h(0)
+        reg.had(0)
         reg.cnot(0, 2)
         state = reg.get_state().state
         
@@ -626,7 +626,7 @@ class TestNQubitRegister:
     def test_partial_measurement_n_qubits(self):
         """Test partial measurement on n-qubit register."""
         reg = quantumregister(3)
-        reg.h(0)
+        reg.had(0)
         
         # Measure qubit 0
         result = reg.measure_qubit(0)
@@ -639,7 +639,7 @@ class TestNQubitRegister:
     def test_ghz_state_three_qubits(self):
         """Test creating GHZ state on 3 qubits."""
         reg = quantumregister(3)
-        reg.h(0)
+        reg.had(0)
         reg.cnot(0, 1)
         reg.cnot(1, 2)
         
@@ -652,7 +652,7 @@ class TestNQubitRegister:
     def test_ghz_state_four_qubits(self):
         """Test creating GHZ state on 4 qubits."""
         reg = quantumregister(4)
-        reg.h(0)
+        reg.had(0)
         reg.cnot(0, 1)
         reg.cnot(1, 2)
         reg.cnot(2, 3)
@@ -679,7 +679,7 @@ class TestNQubitRegister:
         state_str = reg.get_state().to_string()
         assert "|000⟩" in state_str or "1.000|000⟩" in state_str
         
-        reg.h(0)
+        reg.had(0)
         state_str = reg.get_state().to_string()
         assert "|000⟩" in state_str
         assert "|100⟩" in state_str
@@ -688,7 +688,7 @@ class TestNQubitRegister:
         """Test that invalid qubit index raises error."""
         reg = quantumregister(3)
         with pytest.raises(ValueError):
-            reg.h(3)  # Only 0, 1, 2 are valid
+            reg.had(3)  # Only 0, 1, 2 are valid
         
         with pytest.raises(ValueError):
             reg.cnot(0, 3)
@@ -714,7 +714,7 @@ class TestNQubitRegister:
         reg = quantumregister(3)
         
         # Apply various gates
-        reg.h(0)
+        reg.had(0)
         reg.s(1)
         reg.cnot(0, 2)
         
@@ -725,7 +725,7 @@ class TestNQubitRegister:
     def test_measurement_statistics_n_qubits(self):
         """Test measurement statistics on n-qubit register."""
         reg = quantumregister(3)
-        reg.h(0)
+        reg.had(0)
         reg.cnot(0, 1)
         
         # Measure many times
@@ -749,7 +749,7 @@ class TestUserFriendlyAPI:
 
     def test_single_qubit_helper(self):
         reg = quantumregister(2)
-        reg.h(0)
+        reg.had(0)
         state = reg.get_state().state
         # (|00⟩ + |10⟩)/√2 → indices 0 and 2
         assert np.isclose(abs(state[0]), 1/np.sqrt(2))
@@ -760,27 +760,27 @@ class TestUserFriendlyAPI:
 
     def test_two_qubit_helper(self):
         reg = quantumregister(2)
-        reg.h(0).cnot(0, 1)
+        reg.had(0).cnot(0, 1)
         state = reg.get_state().state
         expected = np.array([1/np.sqrt(2), 0.0, 0.0, 1/np.sqrt(2)], dtype=complex)
         assert np.allclose(state, expected)
 
     def test_chained_operations(self):
         reg = quantumregister(3)
-        reg.h(0).x(2).cnot(0, 1).swap(1, 2)
+        reg.had(0).x(2).cnot(0, 1).swap(1, 2)
         # Basic sanity checks on normalization and amplitudes
         probs = reg.get_probabilities()
         assert np.isclose(np.sum(probs), 1.0)
 
     def test_twoqubitsystem_helpers(self):
         system = quantumregister(2)
-        system.h(0).cnot(0, 1)
+        system.had(0).cnot(0, 1)
         state = system.get_state().state
         expected = np.array([1/np.sqrt(2), 0.0, 0.0, 1/np.sqrt(2)], dtype=complex)
         assert np.allclose(state, expected)
 
     def test_module_get_state_function(self, capsys):
-        reg = quantumregister(2).h(0)
+        reg = quantumregister(2).had(0)
         description = get_state(reg)
         captured = capsys.readouterr()
         assert "|00" in captured.out
@@ -793,14 +793,14 @@ class TestUserFriendlyAPI:
         assert np.allclose(array, [1.0, 0.0])
 
     def test_module_measure_single_qubit(self, capsys):
-        reg = quantumregister(1).h(0)
+        reg = quantumregister(1).had(0)
         result = measure(reg)
         captured = capsys.readouterr()
         assert result in (0, 1)
         assert captured.out.strip() in {"0", "1"}
 
     def test_module_measure_multi_qubit(self):
-        reg = quantumregister(2).h(0).cnot(0, 1)
+        reg = quantumregister(2).had(0).cnot(0, 1)
         result = measure(reg, print_result=False)
         assert result in ((0, 0), (1, 1))
 

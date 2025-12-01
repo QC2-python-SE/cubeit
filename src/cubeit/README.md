@@ -10,7 +10,7 @@ CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal 
 - **Measurement:** `get_state()` prints amplitudes, `measure()`
   collapses and returns classical outcomes.
 - **Utility Modules:** Measurement statistics, Bell-state builders, fidelity
-  checks, and more under `cubeit.visualization`.
+  checks, and more under `cubeit.visualisation`.
 
 ## Installation
 Install the package
@@ -64,7 +64,7 @@ print("Measurement:", result)
 
 ```python
 from cubeit import quantumregister, get_state, measure
-from cubeit.visualization import print_probabilities
+from cubeit.visualisation import print_probabilities
 
 qr = quantumregister(2).h(0).cnot(0, 1)
 
@@ -79,7 +79,7 @@ measure(qr)  # collapses the register and prints the classical outcome
 ### Bell States & Visualisation
 
 ```python
-from cubeit.visualization import create_bell_state, print_state, print_measurement_stats
+from cubeit.visualisation import create_bell_state, print_state, print_measurement_stats
 
 bell = create_bell_state("phi_plus")
 print_state(bell)                 # 0.707|00⟩ + 0.707|11⟩
@@ -117,7 +117,7 @@ print(qr)
 
 ```python
 from cubeit import quantumregister
-from cubeit.visualization import print_measurement_stats
+from cubeit.visualisation import print_measurement_stats
 
 qr = quantumregister(2).h(0).cnot(0, 1)
 

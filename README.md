@@ -5,7 +5,7 @@ CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal 
 ## Features
 
 - **N-Qubit Registers:** Create registers of any size with `quantumregister(n)`.
-- **Universal Gate Set:** L (`h()`, `s()`, `t()`, `cnot()`, …)
+- **Universal Gate Set:** (`h()`, `s()`, `t()`, `cnot()`, …)
    (`qr.h(i)`, `qr.cnot(control, target)`).
 - **Measurement:** `get_state()` prints amplitudes, `measure()`
   collapses and returns classical outcomes.
@@ -13,15 +13,15 @@ CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal 
   checks, and more under `cubeit.visualization`.
 
 ## Installation
+Install the package
+```
+pip install cubeit
+```
+
+Or clone the repository and download the requirements
 
 ```bash
 pip install -r requirements.txt
-```
-
-Or install as a package:
-
-```bash
-pip install -e .
 ```
 
 ## Quick Start
@@ -32,7 +32,7 @@ from cubeit import quantumregister, get_state, measure
 # 1) Create a 4-qubit register (|0000⟩)
 qr = quantumregister(4)
 
-# 2) Build a circuit with fluent helpers
+# 2) Build a circuit
 qr.h(0)          # Hadamard on qubit 0
 qr.cnot(0, 1)    # Entangle qubit 0 and 1
 qr.rx(2, 0.5)    # Rotate qubit 2 around X by 0.5 radians
@@ -46,7 +46,7 @@ result = measure(qr)
 print("Measurement:", result)
 ```
 
-### Gate Helpers at a Glance
+### Gatess at a Glance
 
 | Helper | Description |
 | ------ | ----------- |
@@ -59,15 +59,6 @@ print("Measurement:", result)
 | `qr.cphase(control, target, φ)` | Controlled-phase |
 | `qr.swap(a, b)` | Swap two qubits |
 
-Prefer something functional? Import directly:
-
-```python
-from cubeit import h, cnot, quantumregister
-
-qr = quantumregister(2)
-qr.apply_single_qubit_gate(h(), 0)
-qr.apply_two_qubit_gate(cnot(), 0, 1)
-```
 
 ### Measurement & Probabilities
 
@@ -107,17 +98,6 @@ Factory returning an instance of the internal `_QuantumRegister`. Methods:
 - Fluent helpers: `h`, `x`, `y`, `z`, `s`, `t`, `phase`, `rx`, `ry`, `rz`,
   `cnot`, `cz`, `cphase`, `swap`
 
-### Gate Factories
-
-Import functions directly from `cubeit` when you need raw matrices:
-
-```python
-from cubeit import h, x, cnot, swap
-
-u = h()          # 2x2 Hadamard matrix
-cx = cnot()      # 4x4 CNOT (control=0, target=1)
-swap_gate = swap()
-```
 
 ## Examples
 
@@ -144,31 +124,6 @@ qr = quantumregister(2).h(0).cnot(0, 1)
 print_measurement_stats(qr, num_samples=1000)
 ```
 
-## Theory
-
-### Universal Gate Set
-
-The set {h, s, t, CNOT} form a
-universal gate set. Any unitary operation can be approximated to arbitrary
-precision using these primitives.
-
-- **H**: Creates superposition states
-- **S**: Applies π/2 phase rotation
-- **T**: Applies π/4 phase rotation
-- **CNOT**: Creates entanglement between qubits
-
-### Two-Qubit States
-
-A two-qubit system has a 4-dimensional state space with basis states:
-- |00⟩ = [1, 0, 0, 0]ᵀ
-- |01⟩ = [0, 1, 0, 0]ᵀ
-- |10⟩ = [0, 0, 1, 0]ᵀ
-- |11⟩ = [0, 0, 0, 1]ᵀ
-
-Any two-qubit state can be written as:
-|ψ⟩ = α|00⟩ + β|01⟩ + γ|10⟩ + δ|11⟩
-
-where |α|² + |β|² + |γ|² + |δ|² = 1.
 
 ## Requirements
 
@@ -182,3 +137,4 @@ See LICENSE file for details.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+

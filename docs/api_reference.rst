@@ -17,6 +17,14 @@ Quantum Register
    :undoc-members:
    :show-inheritance:
 
+Density Matrix Representation
+-------------
+
+.. automodule:: cubeit.DMs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Gates
 -----
 
@@ -40,4 +48,3 @@ Visualization
    :members:
    :undoc-members:
    :show-inheritance:
-

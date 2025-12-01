@@ -238,10 +238,10 @@ class DensityMatrix1Qubit:
                 self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
             elif 'dephasing' in noise_channels:
                 self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude_damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
+            elif 'amplitude damping' in noise_channels:
+                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
             elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels)
+                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
             
     def measure_ideal(self, basis: str ='Z'):
         """
@@ -353,6 +353,24 @@ class DensityMatrix2Qubit:
                 traced = np.trace(traced, axis1=i, axis2=i+N)
         return traced
     
+    def bloch_vector_from_density(rho):
+        """
+        Convert a single-qubit density matrix to its Bloch vector representation.   
+        Args:
+            rho: 2x2 density matrix of the qubit
+        Returns:
+            3-element array representing the Bloch vector (bx, by, bz)
+        """
+        # Pauli matrices
+        X = np.array([[0,1],[1,0]], dtype=complex)
+        Y = np.array([[0,-1j],[1j,0]], dtype=complex)
+        Z = np.array([[1,0],[0,-1]], dtype=complex)
+
+        # Calculate Bloch vector components by taking traces with Pauli matrices
+        bx = np.real(np.trace(rho @ X))
+        by = np.real(np.trace(rho @ Y))
+        bz = np.real(np.trace(rho @ Z))
+        return np.array([bx, by, bz])
 
     def apply_sequence_noise(self, gates: list, targets: list, noise_channels: dict):
         """
@@ -386,10 +404,10 @@ class DensityMatrix2Qubit:
                 self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
             elif 'dephasing' in noise_channels:
                 self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude_damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
+            elif 'amplitude damping' in noise_channels:
+                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
             elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels)
+                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
 
     def measure_ideal(self, basis: str ='Z'):
         """

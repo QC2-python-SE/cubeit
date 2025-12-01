@@ -5,6 +5,7 @@ Visualization and utility functions for quantum states and circuits.
 import numpy as np
 from typing import List, Tuple
 from .register import _QuantumRegister as QuantumRegister, QuantumState
+from .DMs import DensityMatrix2Qubit as DM
 
 
 def print_state(system: QuantumRegister):
@@ -110,8 +111,13 @@ def state_to_reduced_density_matrix(system: QuantumRegister):
     Returns:
         rhos: list of reduced density matrices
     """
-    state_vector = system.state.state
-    rho = np.outer(state_vector, np.conj(state_vector))
+    if isinstance(system, QuantumRegister):
+        state_vector = system.state.state
+        rho = np.outer(state_vector, np.conj(state_vector))
+    elif isinstance(system, DM):
+        rho = system.rho
+    else:
+        raise ValueError('Input must be a QuantumRegister or Density Matrix instance')
     dims = [2] * system.num_qubits
     rhos = []
     for i in range(system.num_qubits):
@@ -138,29 +144,38 @@ def bloch_from_density(rho):
     bz = np.real(np.trace(rho @ Z))
     return np.array([bx, by, bz])
 
-def plot_bloch_sphere(system: QuantumRegister):
+def plot_bloch_sphere(system):
     """
-    Plot the Bloch sphere representation of each qubit in the QuantumRegister.
+    Plot the Bloch sphere representation of each qubit in the QuantumRegister or Density Matrix.
     
     Args:
-        system: QuantumRegister containing the qubits to visualize
+        system: QuantumRegister or Density Matrix containing the qubits to visualize
     """
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
-    rhos = state_to_reduced_density_matrix(system)
-    state_vectors = []
-    for rho in rhos:
-        state_vectors.append(bloch_from_density(rho))
+    if isinstance(system, QuantumRegister):
+        rhos = state_to_reduced_density_matrix(system)
+        state_vectors = []
+        for rho in rhos:
+            state_vectors.append(bloch_from_density(rho))
+        num_qubits = system.num_qubits
 
-    num_qubits = system.num_qubits
+    elif isinstance(system, DM):
+        num_qubits = system.num_qubits
+        state_vectors = []
+        rhos = state_to_reduced_density_matrix(system)
+        for rho in rhos:
+            state_vectors.append(bloch_from_density(rho))      
+
+    else:
+        raise ValueError('Input must be a QuantumRegister or Density Matrix instance')
+    
     fig = plt.figure(figsize=(5 * num_qubits, 5))
-
     for i in range(num_qubits):
         ax = fig.add_subplot(1, num_qubits, i + 1, projection='3d')
         ax.set_title(f'Qubit {i+1}', fontsize=12, fontweight='semibold', pad=10)
         x,y,z = state_vectors[i]
-
         # Draw a softly shaded Bloch sphere
         u = np.linspace(0, 2 * np.pi, 60)
         v = np.linspace(0, np.pi, 30)
@@ -195,6 +210,8 @@ def plot_bloch_sphere(system: QuantumRegister):
         # bright marker for the state and subtle shadow for depth
         ax.scatter([vec_display[0] * arrow_length], [vec_display[1] * arrow_length],
                [vec_display[2] * arrow_length], color='#D62728', s=90, edgecolor='k', zorder=10)
+        # add marker at the Bloch sphere centre
+        ax.scatter([0], [0], [0], color='#D62728', s=90, zorder=10)
 
         # nice axes: show only -1, 0, 1 ticks and label them
         ax.set_xlim([-1, 1])

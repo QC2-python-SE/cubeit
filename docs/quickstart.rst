@@ -6,7 +6,7 @@ Launching the CubeIt graphical interface
 
 .. code-block:: bash
 
-   python run_gui.python
+   python src/run_gui.py
 
 Creating a Quantum Register
 ---------------------------

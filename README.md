@@ -36,9 +36,8 @@ CubeIt's functionalities are accessible via the jupyter notebook `gui_notebook.i
 To launch the CubeIt Graphical User Interface (GUI) in a browser window, in a terminal run:
 
 ```
-python run_gui.py
+python src/run_gui.py
 ```
-This can be done from within the 'src' folder.
 
 The CubeIt GUI can also be accessed a Jupyter notebook, at `src/gui_notebok.ipynb`.
 

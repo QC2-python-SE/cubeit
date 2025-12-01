@@ -75,7 +75,7 @@ def get_gates_targets(string):
     if len(string.strip())>0:
         if '),' in string:
             print("Please use semicolons ';' to separate commands instead of commas.")
-        return None, None
+            return None, None
     commands = string.split(';')        #Iterate over each command separated by semicolon
     for cmd in commands:
         if len(cmd)>1:      
@@ -106,11 +106,6 @@ def get_gates_targets(string):
                     target = int(target)
                 gates.append(gate)
                 targets.append(target)
-        for gate in gates:
-            if gate not in ['X', 'Y', 'Z', 'Had', 'S', 'T', 'CNOT', 'CNOT', 'SWAP', 'CZ',
-                            'Rotation_x', 'Rotation_y', 'Rotation_z', 'Phase', 'Cphase']:
-                print("Unknown gate:", gate)
-                return None, None
     return gates, targets
 
 def gates_lookup(gates):
@@ -154,7 +149,7 @@ def gates_lookup(gates):
                 gate_functions.append(t())
             elif gate == 'CNOT':
                 gate_functions.append(cnot())
-            elif gate == 'CNOT':
+            elif gate == 'CNOT_10':
                 gate_functions.append(cnot_10())
             elif gate == 'SWAP':
                 gate_functions.append(swap())

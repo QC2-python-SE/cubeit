@@ -13,6 +13,15 @@ import matplotlib.pyplot as plt
 
 
 def plot_measure_DMs(state, meas_shots=1000):
+    """
+    Plot measurement statistics for a 2-qubit density matrix state.
+
+    Args:
+        state (DensityMatrix2Qubit): The 2-qubit density matrix state to be measured.
+        meas_shots (int): Number of measurement shots to simulate.
+    Returns:
+        fig: Matplotlib figure object containing the measurement statistics plot.
+    """
     fig, ax = plt.subplots(figsize=(3, 5))
     basis_states = {
         '|00⟩': 0,

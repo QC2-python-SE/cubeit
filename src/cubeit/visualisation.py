@@ -5,6 +5,7 @@ Visualization and utility functions for quantum states and circuits.
 import numpy as np
 from typing import List, Tuple
 from .register import _QuantumRegister as QuantumRegister, QuantumState
+from .DMs import DensityMatrix2Qubit as DM
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Circle, FancyBboxPatch
@@ -156,6 +157,8 @@ def plot_bloch_sphere(system):
     Args:
         system: QuantumRegister or Density Matrix containing the qubits to visualize
     """
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
     if isinstance(system, QuantumRegister):
         rhos = state_to_reduced_density_matrix(system)

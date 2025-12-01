@@ -126,7 +126,10 @@ def create_bell_state(state_type: str = "phi_plus") -> QuantumRegister:
     
     return system
 
-
+def _get_quantumregister():
+    """Lazy import to avoid circular dependency."""
+    from . import quantumregister
+    return quantumregister
 
 def partial_trace(rho, keep, dims):
     """

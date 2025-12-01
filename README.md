@@ -1,6 +1,6 @@
 # CubeIt
 
-CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal gate set and utilities for visualisation and testing.
+CubeIt is a lightweight quantum playground for **2-qubit** registers. Universal gate set and utilities for visualisation and testing.
 
 ## Features
 
@@ -29,14 +29,14 @@ pip install -r requirements.txt
 ```python
 from cubeit import quantumregister, get_state, measure
 
-# 1) Create a 4-qubit register (|0000⟩)
-qr = quantumregister(4)
+# 1) Create a 2-qubit register (|00⟩)
+qr = quantumregister(2)
 
 # 2) Build a circuit
 qr.h(0)          # Hadamard on qubit 0
 qr.cnot(0, 1)    # Entangle qubit 0 and 1
-qr.rx(2, 0.5)    # Rotate qubit 2 around X by 0.5 radians
-qr.cz(1, 3)      # Controlled-Z between qubit 1 and 3
+qr.rx(2, 0.5)    # Rotate qubit 1 around X by 0.5 radians
+qr.cz(0, 1)      # Controlled-Z between qubit 0 and 1
 
 # 3) Inspect the statevector (pretty printed)
 get_state(qr)

@@ -98,6 +98,59 @@ Factory returning an instance of the internal `_QuantumRegister`. Methods:
 - Fluent helpers: `h`, `x`, `y`, `z`, `s`, `t`, `phase`, `rx`, `ry`, `rz`,
   `cnot`, `cz`, `cphase`, `swap`
 
+### Density Matrix Tools for `cubeit`
+
+This module provides a set of utilities and classes for constructing, evolving, and measuring **density matrices (DMs)** in the `cubeit` quantum simulation package. It supports one- and two-qubit systems, ideal and noisy measurements, and gate-based state evolution.
+
+---
+
+#### Features
+
+##### Density Matrix Construction
+- `create_density_matrix(state_vector)`  
+  Converts a state vector \(|\psi\rangle\) into a density matrix \(\rho = |\psi\rangle\langle\psi|\).
+
+---
+
+##### Measurement
+
+###### Ideal Measurement
+- `DM_measurement_ideal(rho, basis)`  
+  Computes the exact measurement probabilities in the **X**, **Y**, or **Z** basis for 1–2 qubits.
+
+###### Finite-Shot Sampling
+- `DM_measurement_shots(rho, shots, basis)`  
+  Samples measurement outcomes according to the ideal probabilities.
+
+###### Noisy Readout
+- `DM_measurement_shots_noise(rho, shots, basis, p_flip)`  
+  Simulates measurement noise using independent bit-flip error channels for each qubit.
+
+---
+
+#### One-Qubit Class
+
+##### `DensityMatrix1Qubit`
+Supports:
+- Applying single-qubit gates (`apply_gate`, `apply_sequence`)
+- Adding noise after each gate (`apply_sequence_noise`)
+- Ideal and noisy measurements (`measure_ideal`, `measure_shots`)
+
+The class also stores a **history** of applied gates.
+
+---
+
+#### Two-Qubit Class
+
+##### `DensityMatrix2Qubit`
+Provides:
+- Single-qubit and two-qubit gate application  
+  (including automatic SWAP-based control/target handling)
+- Noisy gate sequences
+- Ideal/noisy measurements
+- `partial_trace(keep)` for subsystem reduction
+- `clean(tol)` to remove numerical artefacts
+
 
 ## Examples
 

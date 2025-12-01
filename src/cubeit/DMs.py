@@ -238,10 +238,10 @@ class DensityMatrix1Qubit:
                 self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
             elif 'dephasing' in noise_channels:
                 self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude_damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
+            elif 'amplitude damping' in noise_channels:
+                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
             elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels)
+                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
             
     def measure_ideal(self, basis: str ='Z'):
         """
@@ -386,10 +386,10 @@ class DensityMatrix2Qubit:
                 self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
             elif 'dephasing' in noise_channels:
                 self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude_damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude_damping'])
+            elif 'amplitude damping' in noise_channels:
+                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
             elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels)
+                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
 
     def measure_ideal(self, basis: str ='Z'):
         """

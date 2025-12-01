@@ -117,7 +117,7 @@ def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
 
     return results, probs
 
-def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip: dict = None):
+def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip_on = False):
     """
     Simulate measurement of a density matrix with readout noise for n qubits.
 
@@ -134,8 +134,10 @@ def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='
         dict: Ideal measurement probabilities for each outcome.
     """
 
-    if p_flip is None:
-        p_flip = {'p01': 0.02, 'p10': 0.05}
+    if p_flip_on is False:
+        p_flip = {'p01': 0.00, 'p10': 0.00}
+    else:
+        p_flip = {'p01': 0.01, 'p10': 0.02}
 
     # Get ideal probabilities as a dictionary of bitstring outcomes
     probs = DM_measurement_ideal(rho, basis)  # e.g., {'00': 0.5, '01':0, '10':0, '11':0.5}
@@ -220,28 +222,29 @@ class DensityMatrix1Qubit:
         """
 
         allowed = {'depolarising', 'dephasing', 'amplitude damping', 'bit flip'} # Define the allowed noise channels
-
         invalid = set(noise_channels) - allowed # Find the invalid keys
 
         if invalid:
             raise ValueError(f"Invalid noise channels: {invalid}. \n Allowed channels are: {allowed}.")
-
         for gate, target in zip(gates, targets):
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
                 self.apply_gate(gate, target)
             else:
                 raise ValueError("Gate must be a single-qubit (2x2) unitary matrix.")
-
             # Apply noise channel after each gate
-            if 'depolarising' in noise_channels:
-                self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
-            elif 'dephasing' in noise_channels:
-                self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
-            elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
+            #if 'depolarising' in noise_channels:
+            #    print( "Applying depolarising noise")
+            self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
+            #elif 'dephasing' in noise_channels:
+            #print( "Applying dephasing noise")
+            self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
+            #elif 'amplitude damping' in noise_channels:
+            #print( "Applying amplitude damping noise")
+            self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
+            #elif 'bit flip' in noise_channels:
+            #print( "Applying bit flip noise")
+            self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
             
     def measure_ideal(self, basis: str ='Z'):
         """
@@ -272,7 +275,7 @@ class DensityMatrix1Qubit:
             self.rho,
             shots,
             basis=basis,
-            p_flip=pdict
+            p_flip_on=False
         )
 
 class DensityMatrix2Qubit:
@@ -324,20 +327,14 @@ class DensityMatrix2Qubit:
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is square and a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif mat.shape[0] == 4:  # two-qubit gate
-                P = reorder_2qubit()  # NOT the SWAP gate
-
-                if target == [0,1]:
-                    # Gate already matches your ordering
-                    U = mat
-                
-                elif target == [1,0]:
-                    # Convert to reversed order
-                    U = P @ mat @ P.conj().T
-                
-                self.rho = U @ self.rho @ U.conj().T
-                self.history.append({"gate": name, "target": target})
-
+            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which qubit is target/control
+                SWAP, _ = swap() # Get SWAP gate matrix
+                if target == [0,1]: # For control on qubit 0, target on qubit 1
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                elif target == [1,0]: # For control on qubit 1, target on qubit 0
+                    mat = SWAP @ mat @ SWAP # Switch gate into a form where control is on qubit 1, target on qubit 0
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                self.history.append({"gate": name, "target": target}) # Add the gate to history
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
 
@@ -399,8 +396,13 @@ class DensityMatrix2Qubit:
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
                 self.apply_single_qubit_gate(gate, target)
-            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc.
-                self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+            elif mat.shape[0] == mat.shape[1] == 4: # Gate is already a two-qubit gate e.g. CX, CZ etc. No capability right now to specify which qubit is target/control
+                SWAP, _ = swap() # Get SWAP gate matrix
+                if target == [0,1]: # For control on qubit 0, target on qubit 1
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
+                elif target == [1,0]: # For control on qubit 1, target on qubit 0
+                    mat = SWAP @ mat @ SWAP # Switch gate into a form where control is on qubit 1, target on qubit 0
+                    self.rho = mat @ self.rho @ mat.conj().T # Update density matrix with gate application
                 self.history.append({"gate": name, "target": target}) # Add the gate to history
             else:
                 raise ValueError("Gate must be either a single-qubit (2x2) or two-qubit (4x4) unitary matrix.")
@@ -445,7 +447,7 @@ class DensityMatrix2Qubit:
             self.rho,
             shots,
             basis=basis,
-            p_flip=pdict
+            p_flip_on=False
         )
     
     def clean(self, tol: float = 1e-12):

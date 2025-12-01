@@ -1,19 +1,16 @@
 # CubeIt
 
-CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal gate set, built-in measurement
-helpers, and utilities for visualisation and testing.
+CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal gate set and utilities for visualisation and testing.
 
 ## Features
 
 - **N-Qubit Registers:** Create registers of any size with `quantumregister(n)`.
-- **Universal Gate Set:** Lower-case factories (`h()`, `s()`, `t()`, `cnot()`, …)
-  and ergonomic instance helpers (`qr.h(i)`, `qr.cnot(control, target)`).
-- **State Introspection:** `get_state()` pretty prints amplitudes, `measure()`
-  collapses qubits and returns classical outcomes.
+- **Universal Gate Set:** L (`h()`, `s()`, `t()`, `cnot()`, …)
+   (`qr.h(i)`, `qr.cnot(control, target)`).
+- **Measurement:** `get_state()` prints amplitudes, `measure()`
+  collapses and returns classical outcomes.
 - **Utility Modules:** Measurement statistics, Bell-state builders, fidelity
   checks, and more under `cubeit.visualization`.
-- **Pytest-Friendly:** Extensive suite (see `example.py`) covering helpers,
-  measurement logic, GHZ states, and unitarity tests.
 
 ## Installation
 
@@ -62,7 +59,7 @@ print("Measurement:", result)
 | `qr.cphase(control, target, φ)` | Controlled-phase |
 | `qr.swap(a, b)` | Swap two qubits |
 
-Prefer something functional? Import the factories directly:
+Prefer something functional? Import directly:
 
 ```python
 from cubeit import h, cnot, quantumregister
@@ -98,7 +95,6 @@ print_state(bell)                 # 0.707|00⟩ + 0.707|11⟩
 print_measurement_stats(bell)     # Monte-Carlo sampling
 ```
 
-## API Reference
 
 ### `quantumregister`
 
@@ -152,7 +148,7 @@ print_measurement_stats(qr, num_samples=1000)
 
 ### Universal Gate Set
 
-The set {H, S, T, CNOT} (and consequently their lowercase counterparts) forms a
+The set {h, s, t, CNOT} form a
 universal gate set. Any unitary operation can be approximated to arbitrary
 precision using these primitives.
 

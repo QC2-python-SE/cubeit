@@ -72,6 +72,10 @@ def get_gates_targets(string):
     """
     gates = []
     targets = []
+    if len(string.strip())>0:
+        if '),' in string:
+            print("Please use semicolons ';' to separate commands instead of commas.")
+        return None, None
     commands = string.split(';')        #Iterate over each command separated by semicolon
     for cmd in commands:
         if len(cmd)>1:      
@@ -102,6 +106,11 @@ def get_gates_targets(string):
                     target = int(target)
                 gates.append(gate)
                 targets.append(target)
+        for gate in gates:
+            if gate not in ['X', 'Y', 'Z', 'Had', 'S', 'T', 'CNOT', 'CNOT', 'SWAP', 'CZ',
+                            'Rotation_x', 'Rotation_y', 'Rotation_z', 'Phase', 'Cphase']:
+                print("Unknown gate:", gate)
+                return None, None
     return gates, targets
 
 def gates_lookup(gates):
@@ -154,17 +163,3 @@ def gates_lookup(gates):
             else:
                 print(f"Unknown gate: {gate}")
     return gate_functions
-
-def plot_measure_DM(state, shots=1000):
-    fig, ax = plt.subplots(figsize=(3, 5))
-    basis_states = {'|00>': 0, '|01>': 0, '|10>': 0, '|11>': 0}
-    meast = simulate_measurements(state, num_samples=int(shots))
-    for k in basis_states:
-        k_ = k.replace('|', '').replace('>', '')
-        if k_ in meast:
-            basis_states[k] = float(meast[k_])/float(shots)
-    ax.bar(list(basis_states.keys()), list(basis_states.values()), 0.25)
-    ax.set_title(f'Measurement over {shots} shots')
-    ax.set_ylabel('Probability')
-    plt.show()
-    return fig

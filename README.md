@@ -1,6 +1,7 @@
 # CubeIt
 
 CubeIt is a lightweight quantum playground for **2-qubit** registers. Universal gate set and utilities for visualisation and testing.
+CubeIt offers a intuitive and easy to use browser-hosted graphical user interface, enabling code-free simulation and visualisation.
 
 ## Features
 
@@ -10,7 +11,9 @@ CubeIt is a lightweight quantum playground for **2-qubit** registers. Universal 
 - **Measurement:** `get_state()` prints amplitudes, `measure()`
   collapses and returns classical outcomes.
 - **Utility Modules:** Measurement statistics, Bell-state builders, fidelity
-  checks, and more under `cubeit.visualization`.
+  checks, and more under `cubeit.visualisation`.
+- **Intuitive graphical user interface** with `gui_notebook.ipynb`, 
+  which can be opened in a browser using `run_gui.py` or run as a jupyter notebook.
 
 ## Installation
 Install the package
@@ -24,7 +27,51 @@ Or clone the repository and download the requirements
 pip install -r requirements.txt
 ```
 
-## Quick Start
+## Interface Quick Start
+
+CubeIt's functionalities are accessible via the jupyter notebook `gui_notebook.ipynb`, which runs seamlessly in a browser window using voila.
+
+### GUI launch
+
+To launch the CubeIt Graphical User Interface (GUI) in a browser window, in a terminal run:
+
+```
+python run_gui.py
+```
+This can be done from within the 'src' folder.
+
+The CubeIt GUI can also be accessed a Jupyter notebook, at `src/gui_notebok.ipynb`.
+
+### GUI usage
+
+CubeIt's visual interface consists of two panels: the input panel at the top of the screen, and the output panel below. 
+Below a screenshot of the GUI:
+
+![GUI example](./src/saved%20figures/GUI_example.png)
+
+The user can input the following via the input panel:
+
+- Initial state: input [a,b,c,d] to set system in [a|00>+b|01>+c|10>+d|11>]. The input state will be automatically normalised. 
+- Noise: select between bit-flip, dephasing, depolarising and amplitude damping noise, and set noise level.
+- Apply gates from CubeIt's universal gate set. Note that noise will only be applied with gates.
+- Save separate figures in the `src/saved_figures` folder by setting a filename prefix. The date, time and plot type will be added to the prefix.
+
+The CubeIt interface outputs the following representations:
+
+- Bloch sphere representation of the two-qubit system.
+- Quantum circuit representing the applied gates.
+- Measurement statistics after 1000 shots.
+
+Note that the 'exit' button must be clicked before closing the GUI host tab to prevent errors.
+
+This comprehensive set of inputs and representations gives the user full control over the system, and the visual support required for a deep understanding of the underlying physics.
+
+## Python Quick Start
+
+CubeIt provides a dual structure, where a quantum system can be described in terms of a state vector or a density matrix. 
+While these system descriptions are equivalent, the density matrix (DM) representation supports noise implementation.
+
+This section provides an overview of the state vector tools before describing the density matrix approach.
 
 ```python
 from cubeit import quantumregister, get_state, measure
@@ -64,7 +111,7 @@ print("Measurement:", result)
 
 ```python
 from cubeit import quantumregister, get_state, measure
-from cubeit.visualization import print_probabilities
+from cubeit.visualisation import print_probabilities
 
 qr = quantumregister(2).h(0).cnot(0, 1)
 
@@ -76,15 +123,19 @@ print_probabilities(qr)
 measure(qr)  # collapses the register and prints the classical outcome
 ```
 
-### Bell States & Visualisation
+### Bell States
 
 ```python
-from cubeit.visualization import create_bell_state, print_state, print_measurement_stats
+from cubeit.visualisation import create_bell_state, print_state, print_measurement_stats
 
 bell = create_bell_state("phi_plus")
 print_state(bell)                 # 0.707|00⟩ + 0.707|11⟩
 print_measurement_stats(bell)     # Monte-Carlo sampling
 ```
+
+### Visualisations
+
+Examples of circuit diagrams and Bloch sphere visualisations can be found in `tutorials/Visualisation_tools.ipynb`.
 
 
 ### `quantumregister`
@@ -170,7 +221,7 @@ print(qr)
 
 ```python
 from cubeit import quantumregister
-from cubeit.visualization import print_measurement_stats
+from cubeit.visualisation import print_measurement_stats
 
 qr = quantumregister(2).h(0).cnot(0, 1)
 
@@ -182,6 +233,12 @@ print_measurement_stats(qr, num_samples=1000)
 
 - Python >= 3.8
 - NumPy >= 1.20.0
+- matplotlib >= 3.10.0
+- voila >= 0.5.11
+- voila-material >= 0.4.3
+- ipywidgets >= 8.2.1
+- ipython >= 8.30.0
+- ipykernel >= 6.28.0
 
 ## License
 

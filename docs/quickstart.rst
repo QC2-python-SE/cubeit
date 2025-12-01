@@ -1,6 +1,13 @@
 Quick Start
 ===========
 
+Launching the CubeIt graphical interface
+--------------------------------------
+
+.. code-block:: bash
+
+   python run_gui.python
+
 Creating a Quantum Register
 ---------------------------
 

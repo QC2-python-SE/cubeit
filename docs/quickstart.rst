@@ -91,7 +91,7 @@ Measurement & Probabilities
 .. code-block:: python
 
    from cubeit import quantumregister, get_state, measure
-   from cubeit.visualization import print_probabilities
+   from cubeit.visualisation import print_probabilities
 
    qr = quantumregister(2).had(0).cnot(0, 1)
 
@@ -107,7 +107,7 @@ Bell States & Visualisation
 
 .. code-block:: python
 
-   from cubeit.visualization import create_bell_state, print_state, print_measurement_stats
+   from cubeit.visualisation import create_bell_state, print_state, print_measurement_stats
 
    bell = create_bell_state("phi_plus")
    print_state(bell)                 # 0.707|00⟩ + 0.707|11⟩

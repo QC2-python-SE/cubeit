@@ -20,7 +20,7 @@ Measurement Statistics
 .. code-block:: python
 
    from cubeit import quantumregister
-   from cubeit.visualization import print_measurement_stats
+   from cubeit.visualisation import print_measurement_stats
 
    qr = quantumregister(2).had(0).cnot(0, 1)
 

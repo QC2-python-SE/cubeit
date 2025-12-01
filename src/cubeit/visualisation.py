@@ -1,5 +1,5 @@
 """
-Visualization and utility functions for quantum states and circuits.
+visualisation and utility functions for quantum states and circuits.
 """
 
 import numpy as np
@@ -103,7 +103,7 @@ def partial_trace(rho, keep, dims):
             traced = np.trace(traced, axis1=i, axis2=i+N)
     return traced
 
-def state_to_reduced_density_matrix(system: QuantumRegister):
+def state_to_reduced_density_matrix(system):
     """
     Convert a statvector into a list of reduced density matrices.
     Args:
@@ -254,7 +254,7 @@ def plot_bloch_sphere(system):
     plt.show()
     return fig
 
-def plot_circuit(system: QuantumRegister):
+def plot_circuit(system):
     """
     Plot a simple circuit diagram based on `system.history`.
 

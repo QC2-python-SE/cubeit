@@ -222,28 +222,29 @@ class DensityMatrix1Qubit:
         """
 
         allowed = {'depolarising', 'dephasing', 'amplitude damping', 'bit flip'} # Define the allowed noise channels
-
         invalid = set(noise_channels) - allowed # Find the invalid keys
 
         if invalid:
             raise ValueError(f"Invalid noise channels: {invalid}. \n Allowed channels are: {allowed}.")
-
         for gate, target in zip(gates, targets):
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
                 self.apply_gate(gate, target)
             else:
                 raise ValueError("Gate must be a single-qubit (2x2) unitary matrix.")
-
             # Apply noise channel after each gate
-            if 'depolarising' in noise_channels:
-                self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
-            elif 'dephasing' in noise_channels:
-                self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
-            elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
+            #if 'depolarising' in noise_channels:
+            #    print( "Applying depolarising noise")
+            self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
+            #elif 'dephasing' in noise_channels:
+            #print( "Applying dephasing noise")
+            self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
+            #elif 'amplitude damping' in noise_channels:
+            #print( "Applying amplitude damping noise")
+            self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
+            #elif 'bit flip' in noise_channels:
+            #print( "Applying bit flip noise")
+            self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
             
     def measure_ideal(self, basis: str ='Z'):
         """

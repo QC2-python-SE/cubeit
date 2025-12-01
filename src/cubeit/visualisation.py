@@ -254,7 +254,7 @@ def plot_bloch_sphere(system):
     plt.show()
     return fig
 
-def plot_circuit(system: QuantumRegister):
+def plot_circuit(system):
     """
     Plot a simple circuit diagram based on `system.history`.
 

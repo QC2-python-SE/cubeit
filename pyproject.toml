@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cubeit"                  # Must be unique on PyPI
-version = "0.0.1"                # Increment this for new uploads
+version = "0.0.2"                # Increment this for new uploads
 description = "A visualisation tool for quantum information"
 readme = "README.md"             # Path to README
 requires-python = ">=3.8"

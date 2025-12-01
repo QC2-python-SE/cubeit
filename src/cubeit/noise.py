@@ -34,10 +34,19 @@ def dephasing_noise(rho, p):
     Returns:
         np.ndarray: Density matrix after applying dephasing noise.
     """
-
     Z = np.array([[1, 0], [0, -1]])
-    d = rho.shape[0]
-    noisy_rho = (1 - p) * rho + p * Z @ rho @ Z
+    I = np.eye(2)
+
+    ZI = np.kron(Z, I)
+    IZ = np.kron(I, Z)
+    ZZ = np.kron(Z, Z)
+
+    noisy_rho = (
+        (1 - p)**2 * rho
+        + p*(1 - p) * ZI @ rho @ ZI
+        + p*(1 - p) * IZ @ rho @ IZ
+        + p**2 * ZZ @ rho @ ZZ
+    )
     return noisy_rho
 
 def amplitude_damping_noise(rho, gamma):
@@ -51,12 +60,17 @@ def amplitude_damping_noise(rho, gamma):
     Returns:
         np.ndarray: Density matrix after applying amplitude damping noise.
     """
-
     K0 = np.array([[1, 0], [0, np.sqrt(1 - gamma)]])
     K1 = np.array([[0, np.sqrt(gamma)], [0, 0]])
 
-    noisy_rho = K0 @ rho @ K0.T + K1 @ rho @ K1.T
-    
+    Ks = [
+        np.kron(K0, K0),
+        np.kron(K0, K1),
+        np.kron(K1, K0),
+        np.kron(K1, K1)
+    ]
+
+    noisy_rho = sum(K @ rho @ K.conj().T for K in Ks)
     return noisy_rho
 
 def bit_flip_noise(rho, p):
@@ -70,7 +84,17 @@ def bit_flip_noise(rho, p):
     Returns:
         np.ndarray: Density matrix after applying bit-flip noise.
     """
-
     X = np.array([[0, 1], [1, 0]])
-    noisy_rho = (1 - p) * rho + p * X @ rho @ X
+    I = np.eye(2)
+
+    XI = np.kron(X, I)
+    IX = np.kron(I, X)
+    XX = np.kron(X, X)
+
+    noisy_rho = (
+        (1 - p)**2 * rho
+        + p*(1 - p) * XI @ rho @ XI
+        + p*(1 - p) * IX @ rho @ IX
+        + p**2 * XX @ rho @ XX
+    )
     return noisy_rho

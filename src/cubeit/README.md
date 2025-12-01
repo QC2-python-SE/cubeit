@@ -1,6 +1,6 @@
 # CubeIt
 
-CubeIt is a lightweight quantum playground for **2-qubit** registers. Universal gate set and utilities for visualisation and testing.
+CubeIt is a lightweight quantum playground for **n-qubit** registers. Universal gate set and utilities for visualisation and testing.
 
 ## Features
 
@@ -10,7 +10,7 @@ CubeIt is a lightweight quantum playground for **2-qubit** registers. Universal 
 - **Measurement:** `get_state()` prints amplitudes, `measure()`
   collapses and returns classical outcomes.
 - **Utility Modules:** Measurement statistics, Bell-state builders, fidelity
-  checks, and more under `cubeit.visualisation`.
+  checks, and more under `cubeit.visualization`.
 
 ## Installation
 Install the package
@@ -29,14 +29,14 @@ pip install -r requirements.txt
 ```python
 from cubeit import quantumregister, get_state, measure
 
-# 1) Create a 2-qubit register (|00⟩)
-qr = quantumregister(2)
+# 1) Create a 4-qubit register (|0000⟩)
+qr = quantumregister(4)
 
 # 2) Build a circuit
 qr.h(0)          # Hadamard on qubit 0
 qr.cnot(0, 1)    # Entangle qubit 0 and 1
-qr.rx(2, 0.5)    # Rotate qubit 1 around X by 0.5 radians
-qr.cz(0, 1)      # Controlled-Z between qubit 0 and 1
+qr.rx(2, 0.5)    # Rotate qubit 2 around X by 0.5 radians
+qr.cz(1, 3)      # Controlled-Z between qubit 1 and 3
 
 # 3) Inspect the statevector (pretty printed)
 get_state(qr)
@@ -64,7 +64,7 @@ print("Measurement:", result)
 
 ```python
 from cubeit import quantumregister, get_state, measure
-from cubeit.visualisation import print_probabilities
+from cubeit.visualization import print_probabilities
 
 qr = quantumregister(2).h(0).cnot(0, 1)
 
@@ -79,7 +79,7 @@ measure(qr)  # collapses the register and prints the classical outcome
 ### Bell States & Visualisation
 
 ```python
-from cubeit.visualisation import create_bell_state, print_state, print_measurement_stats
+from cubeit.visualization import create_bell_state, print_state, print_measurement_stats
 
 bell = create_bell_state("phi_plus")
 print_state(bell)                 # 0.707|00⟩ + 0.707|11⟩
@@ -97,59 +97,6 @@ Factory returning an instance of the internal `_QuantumRegister`. Methods:
 - `get_probabilities()` → `np.ndarray`
 - Fluent helpers: `h`, `x`, `y`, `z`, `s`, `t`, `phase`, `rx`, `ry`, `rz`,
   `cnot`, `cz`, `cphase`, `swap`
-
-### Density Matrix Tools for `cubeit`
-
-This module provides a set of utilities and classes for constructing, evolving, and measuring **density matrices (DMs)** in the `cubeit` quantum simulation package. It supports one- and two-qubit systems, ideal and noisy measurements, and gate-based state evolution.
-
----
-
-#### Features
-
-##### Density Matrix Construction
-- `create_density_matrix(state_vector)`  
-  Converts a state vector \(|\psi\rangle\) into a density matrix \(\rho = |\psi\rangle\langle\psi|\).
-
----
-
-##### Measurement
-
-###### Ideal Measurement
-- `DM_measurement_ideal(rho, basis)`  
-  Computes the exact measurement probabilities in the **X**, **Y**, or **Z** basis for 1–2 qubits.
-
-###### Finite-Shot Sampling
-- `DM_measurement_shots(rho, shots, basis)`  
-  Samples measurement outcomes according to the ideal probabilities.
-
-###### Noisy Readout
-- `DM_measurement_shots_noise(rho, shots, basis, p_flip)`  
-  Simulates measurement noise using independent bit-flip error channels for each qubit.
-
----
-
-#### One-Qubit Class
-
-##### `DensityMatrix1Qubit`
-Supports:
-- Applying single-qubit gates (`apply_gate`, `apply_sequence`)
-- Adding noise after each gate (`apply_sequence_noise`)
-- Ideal and noisy measurements (`measure_ideal`, `measure_shots`)
-
-The class also stores a **history** of applied gates.
-
----
-
-#### Two-Qubit Class
-
-##### `DensityMatrix2Qubit`
-Provides:
-- Single-qubit and two-qubit gate application  
-  (including automatic SWAP-based control/target handling)
-- Noisy gate sequences
-- Ideal/noisy measurements
-- `partial_trace(keep)` for subsystem reduction
-- `clean(tol)` to remove numerical artefacts
 
 
 ## Examples
@@ -170,7 +117,7 @@ print(qr)
 
 ```python
 from cubeit import quantumregister
-from cubeit.visualisation import print_measurement_stats
+from cubeit.visualization import print_measurement_stats
 
 qr = quantumregister(2).h(0).cnot(0, 1)
 

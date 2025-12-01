@@ -171,7 +171,7 @@ def plot_bloch_sphere(system):
     else:
         raise ValueError('Input must be a QuantumRegister or Density Matrix instance')
     
-    fig = plt.figure(figsize=(5 * num_qubits, 5))
+    fig = plt.figure(figsize=(5 * num_qubits, 2.9))
     for i in range(num_qubits):
         ax = fig.add_subplot(1, num_qubits, i + 1, projection='3d')
         x,y,z = state_vectors[i]
@@ -254,7 +254,7 @@ def plot_bloch_sphere(system):
     plt.show()
     return fig
 
-def plot_circuit(system: QuantumRegister):
+def plot_circuit(system):
     """
     Plot a simple circuit diagram based on `system.history`.
 

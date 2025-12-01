@@ -117,7 +117,7 @@ def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
 
     return results, probs
 
-def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip: dict = None):
+def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='Z', p_flip_on = False):
     """
     Simulate measurement of a density matrix with readout noise for n qubits.
 
@@ -134,8 +134,10 @@ def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='
         dict: Ideal measurement probabilities for each outcome.
     """
 
-    if p_flip is None:
-        p_flip = {'p01': 0.02, 'p10': 0.05}
+    if p_flip_on is False:
+        p_flip = {'p01': 0.00, 'p10': 0.00}
+    else:
+        p_flip = {'p01': 0.01, 'p10': 0.02}
 
     # Get ideal probabilities as a dictionary of bitstring outcomes
     probs = DM_measurement_ideal(rho, basis)  # e.g., {'00': 0.5, '01':0, '10':0, '11':0.5}
@@ -220,28 +222,29 @@ class DensityMatrix1Qubit:
         """
 
         allowed = {'depolarising', 'dephasing', 'amplitude damping', 'bit flip'} # Define the allowed noise channels
-
         invalid = set(noise_channels) - allowed # Find the invalid keys
 
         if invalid:
             raise ValueError(f"Invalid noise channels: {invalid}. \n Allowed channels are: {allowed}.")
-
         for gate, target in zip(gates, targets):
             mat, name = gate
             if mat.shape[0] == mat.shape[1] == 2: # Checking it is a single-qubit gate
                 self.apply_gate(gate, target)
             else:
                 raise ValueError("Gate must be a single-qubit (2x2) unitary matrix.")
-
             # Apply noise channel after each gate
-            if 'depolarising' in noise_channels:
-                self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
-            elif 'dephasing' in noise_channels:
-                self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
-            elif 'amplitude damping' in noise_channels:
-                self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
-            elif 'bit flip' in noise_channels:
-                self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
+            #if 'depolarising' in noise_channels:
+            #    print( "Applying depolarising noise")
+            self.rho = depolarising_noise(self.rho, p=noise_channels['depolarising'])
+            #elif 'dephasing' in noise_channels:
+            #print( "Applying dephasing noise")
+            self.rho = dephasing_noise(self.rho, p=noise_channels['dephasing'])
+            #elif 'amplitude damping' in noise_channels:
+            #print( "Applying amplitude damping noise")
+            self.rho = amplitude_damping_noise(self.rho, gamma=noise_channels['amplitude damping'])
+            #elif 'bit flip' in noise_channels:
+            #print( "Applying bit flip noise")
+            self.rho = bit_flip_noise(self.rho, p=noise_channels['bit flip'])
             
     def measure_ideal(self, basis: str ='Z'):
         """
@@ -272,7 +275,7 @@ class DensityMatrix1Qubit:
             self.rho,
             shots,
             basis=basis,
-            p_flip=pdict
+            p_flip_on=False
         )
 
 class DensityMatrix2Qubit:
@@ -444,7 +447,7 @@ class DensityMatrix2Qubit:
             self.rho,
             shots,
             basis=basis,
-            p_flip=pdict
+            p_flip_on=False
         )
     
     def clean(self, tol: float = 1e-12):

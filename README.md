@@ -46,7 +46,7 @@ result = measure(qr)
 print("Measurement:", result)
 ```
 
-### Gatess at a Glance
+### Gates at a Glance
 
 | Helper | Description |
 | ------ | ----------- |

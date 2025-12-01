@@ -1,5 +1,5 @@
 """
-Visualization and utility functions for quantum states and circuits.
+visualisation and utility functions for quantum states and circuits.
 """
 
 import numpy as np

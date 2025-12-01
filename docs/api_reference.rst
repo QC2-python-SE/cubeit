@@ -41,10 +41,10 @@ Noise Models
    :undoc-members:
    :show-inheritance:
 
-Visualization
+visualisation
 -------------
 
-.. automodule:: cubeit.visualization
+.. automodule:: cubeit.visualisation
    :members:
    :undoc-members:
    :show-inheritance:

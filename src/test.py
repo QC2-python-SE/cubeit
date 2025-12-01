@@ -12,7 +12,7 @@ from cubeit import (
     had, s, t, x, y, z,
     cnot, cnot_10, swap, cz,
 )
-from cubeit.visualization import fidelity
+from cubeit.visualisation import fidelity
 import cubeit.visualisation as vs
 
 def create_bell_state(state_type: str = "phi_plus") -> quantumregister:

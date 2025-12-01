@@ -1,5 +1,5 @@
 """
-Visualization and utility functions for quantum states and circuits.
+visualisation and utility functions for quantum states and circuits.
 """
 
 import numpy as np
@@ -84,6 +84,52 @@ def fidelity(system1: QuantumRegister, system2: QuantumRegister) -> float:
     """
     return system1.get_state().fidelity(system2.get_state())
 
+def create_bell_state(state_type: str = "phi_plus") -> QuantumRegister:
+    """
+    Create a Bell state (maximally entangled state).
+    
+    Args:
+        state_type: Type of Bell state
+            - "phi_plus":  (|00⟩ + |11⟩) / √2
+            - "phi_minus": (|00⟩ - |11⟩) / √2
+            - "psi_plus":  (|01⟩ + |10⟩) / √2
+            - "psi_minus": (|01⟩ - |10⟩) / √2
+    
+    Returns:
+        Quantum register in the specified Bell state
+    """
+    quantumregister = _get_quantumregister()
+    system = quantumregister(2)  # Bell states are for 2 qubits
+    
+    if state_type == "phi_plus":
+        # |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
+        system.had(0)
+        system.cnot(0, 1)
+    elif state_type == "phi_minus":
+        # |Φ⁻⟩ = (|00⟩ - |11⟩) / √2
+        system.had(0)
+        system.z(0)  # Apply Z before CNOT
+        system.cnot(0, 1)
+    elif state_type == "psi_plus":
+        # |Ψ⁺⟩ = (|01⟩ + |10⟩) / √2
+        system.had(0)
+        system.x(1)  # Flip qubit 1
+        system.cnot(0, 1)
+    elif state_type == "psi_minus":
+        # |Ψ⁻⟩ = (|01⟩ - |10⟩) / √2
+        system.had(0)
+        system.x(1)  # Flip qubit 1
+        system.z(0)  # Apply Z before CNOT
+        system.cnot(0, 1)
+    else:
+        raise ValueError(f"Unknown Bell state type: {state_type}")
+    
+    return system
+
+def _get_quantumregister():
+    """Lazy import to avoid circular dependency."""
+    from . import quantumregister
+    return quantumregister
 
 def partial_trace(rho, keep, dims):
     """
@@ -103,7 +149,7 @@ def partial_trace(rho, keep, dims):
             traced = np.trace(traced, axis1=i, axis2=i+N)
     return traced
 
-def state_to_reduced_density_matrix(system: QuantumRegister):
+def state_to_reduced_density_matrix(system):
     """
     Convert a statvector into a list of reduced density matrices.
     Args:

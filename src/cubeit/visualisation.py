@@ -120,13 +120,15 @@ def state_to_reduced_density_matrix(system: QuantumRegister):
     if isinstance(system, QuantumRegister):
         state_vector = system.state.state
         rho = np.outer(state_vector, np.conj(state_vector))
+        num_qubits = system.num_qubits
     elif isinstance(system, DM):
         rho = system.rho
+        num_qubits = 2
     else:
         raise ValueError('Input must be a QuantumRegister or Density Matrix instance')
-    dims = [2] * system.num_qubits
+    dims = [2] * num_qubits
     rhos = []
-    for i in range(system.num_qubits):
+    for i in range(num_qubits):
         rho_i = partial_trace(rho, [i], dims)
         rhos.append(rho_i)
     return rhos    
@@ -168,7 +170,7 @@ def plot_bloch_sphere(system):
         num_qubits = system.num_qubits
 
     elif isinstance(system, DM):
-        num_qubits = system.num_qubits
+        num_qubits = 2
         state_vectors = []
         rhos = state_to_reduced_density_matrix(system)
         for rho in rhos:

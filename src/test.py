@@ -13,6 +13,7 @@ from cubeit import (
     cnot, cnot_10, swap, cz,
 )
 from cubeit.visualization import fidelity
+import cubeit.visualisation as vs
 
 def create_bell_state(state_type: str = "phi_plus") -> quantumregister:
     """
@@ -738,6 +739,57 @@ class TestNQubitRegister:
         assert len(unique_results) <= 2
         assert (0, 0, 0) in unique_results or (0, 1, 1) in unique_results
 
+class TestBlochVector:
+    """Tests for Bloch vector calculations."""
+
+    def test_bloch_vector_initial_state(self):
+        reg = quantumregister(2)
+        rhos = vs.state_to_reduced_density_matrix(reg)
+        bloch1 = vs.bloch_from_density(rhos[0])
+        bloch2 = vs.bloch_from_density(rhos[1])
+        bloch = [bloch1, bloch2]
+        expected = [np.array([0.0, 0.0, 1.0]), np.array([0.0, 0.0, 1.0])]  # |0⟩|0⟩ state
+        assert np.allclose(bloch, expected)
+
+    def test_bloch_vector_after_hadamard(self):
+        reg = quantumregister(2)
+        reg.had(0)
+        rhos = vs.state_to_reduced_density_matrix(reg)
+        bloch1 = vs.bloch_from_density(rhos[0])
+        bloch2 = vs.bloch_from_density(rhos[1])
+        bloch = [bloch1, bloch2]
+        expected = [np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0])]  # (|0⟩ + |1⟩)|0⟩/√2 state
+        assert np.allclose(bloch, expected)
+
+    def test_bloch_vector_after_pauli_x(self):
+        reg = quantumregister(2)
+        reg.x(0)
+        rhos = vs.state_to_reduced_density_matrix(reg)
+        bloch1 = vs.bloch_from_density(rhos[0])
+        bloch2 = vs.bloch_from_density(rhos[1])
+        bloch = [bloch1, bloch2]
+        expected = [np.array([0.0, 0.0, -1.0]), np.array([0.0, 0.0, 1.0])] # |1⟩|0⟩ state
+        assert np.allclose(bloch, expected)
+
+    def test_bloch_vector_after_rotation_y(self):
+        reg = quantumregister(2)
+        reg.ry(0, np.pi / 2)
+        rhos = vs.state_to_reduced_density_matrix(reg)
+        bloch1 = vs.bloch_from_density(rhos[0])
+        bloch2 = vs.bloch_from_density(rhos[1])
+        bloch = [bloch1, bloch2]
+        expected = [np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0])]  # (|0⟩ + i|1⟩)|0⟩/√2 state
+        assert np.allclose(bloch, expected)
+
+    def test_bloch_vector_after_cnot(self):
+        reg = quantumregister(2)
+        reg.had(0).cnot(0, 1)
+        rhos = vs.state_to_reduced_density_matrix(reg)
+        bloch1 = vs.bloch_from_density(rhos[0])
+        bloch2 = vs.bloch_from_density(rhos[1])
+        bloch = [bloch1, bloch2]
+        expected = [np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0])]  # Maximally mixed states
+        assert np.allclose(bloch, expected)
 
 class TestUserFriendlyAPI:
     """Tests for the convenience helpers exposed on QuantumRegister."""

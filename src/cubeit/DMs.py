@@ -104,7 +104,7 @@ def DM_measurement_shots(rho: np.ndarray, shots: np.ndarray, basis: str = 'Z'):
 
     # All possible outcomes as strings
     outcomes_list = list(probs.keys())
-    probs_list = [probs[k] for k in outcomes_list]
+    probs_list = [np.abs(probs[k]) for k in outcomes_list]
 
     shots = [int(s) for s in shots]  # ensure integer
     results = []
@@ -143,7 +143,7 @@ def DM_measurement_shots_noise(rho: np.ndarray, shots: np.ndarray, basis: str ='
     probs = DM_measurement_ideal(rho, basis)  # e.g., {'00': 0.5, '01':0, '10':0, '11':0.5}
 
     outcomes_list = list(probs.keys())
-    probs_list = [probs[k] for k in outcomes_list]
+    probs_list = [np.abs(probs[k]) for k in outcomes_list]
 
     shots = [int(s) for s in shots]  # ensure integer
     results = []
